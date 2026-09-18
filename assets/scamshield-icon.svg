@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+<title id="title">ScamShield security icon</title>
+<desc id="desc">A white security shield with a dark purple lock on a blue-to-purple gradient rounded-square background.</desc>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#506fd5"/>
+    <stop offset="1" stop-color="#43256f"/>
+  </linearGradient>
+</defs>
+<rect width="1024" height="1024" rx="220" fill="url(#bg)"/>
+<path fill="#f7f2ff" d="M512 224c96 43 174 53 246 53v112c0 183-63 309-246 415-183-106-246-232-246-415V277c72 0 150-10 246-53Z"/>
+<path fill="#30205a" d="M512 267c-58 0-105 47-105 105v93h-10c-25 0-45 20-45 45v96c0 25 20 45 45 45h230c25 0 45-20 45-45v-96c0-25-20-45-45-45h-10v-93c0-58-47-105-105-105Zm-63 198v-93c0-35 28-63 63-63s63 28 63 63v93H449Z"/>
+<path fill="#f7f2ff" d="M512 510a26 26 0 0 1 26 26c0 10-5 19-13 24v27a13 13 0 0 1-26 0v-27a26 26 0 0 1 13-50Z"/>
+</svg>
