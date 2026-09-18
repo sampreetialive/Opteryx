@@ -1,119 +1,42 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b0b0f">
-  <title>ScamShield — Is this trying to scam me?</title>
-  <meta name="description" content="ScamShield uses an AI agent to explain suspicious messages, links and payment requests and give you a safe action plan.">
-  <link rel="stylesheet" href="/styles.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b0b0f">
+<title>ScamShield — Is this trying to scam me?</title>
+<meta name="description" content="ScamShield uses an AI agent to explain suspicious messages, links and payment requests and give you a safe action plan.">
+<link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <div class="noise"></div>
-  <header class="topbar">
-    <a class="brand" href="/">
-      <span class="brand-mark"><span></span></span>
-      <span>ScamShield</span>
-    </a>
-    <div class="top-actions">
-      <span class="privacy-pill"><i></i> No passwords. No OTPs.</span>
-      <button id="themeBtn" class="icon-btn" aria-label="Toggle light and dark mode" title="Toggle theme">☼</button>
-    </div>
-  </header>
-
-  <main class="shell">
-    <section class="hero">
-      <div class="eyebrow"><span class="spark">✦</span> AI scam-awareness agent</div>
-      <h1>Is this message<br><em>trying to scam me?</em></h1>
-      <p class="hero-copy">Paste a suspicious message or link. ScamShield looks for pressure, impersonation, payment traps and other red flags — then tells you what to do next.</p>
-      <div class="mini-proof">
-        <span>✦ Explainable</span><span>•</span><span>Fast</span><span>•</span><span>Action-focused</span>
-      </div>
-    </section>
-
-    <section class="workspace">
-      <div class="analyzer-card card">
-        <div class="card-top">
-          <div>
-            <div class="section-kicker">CHECK SOMETHING</div>
-            <h2>Drop the suspicious content here.</h2>
-          </div>
-          <span class="agent-badge"><span class="pulse"></span> Agent ready</span>
-        </div>
-
-        <div class="tabs" role="tablist">
-          <button class="tab active" data-mode="message">▤ Message</button>
-          <button class="tab" data-mode="link">↗ Link</button>
-          <button class="tab" data-mode="screenshot">▧ Screenshot</button>
-        </div>
-
-        <div id="messagePane" class="input-pane">
-          <textarea id="messageInput" maxlength="12000" placeholder="Paste WhatsApp, email, SMS, internship offer, bank/KYC notice, payment request…"></textarea>
-          <div class="input-footer"><span id="charCount">0 / 12,000</span><span>Tip: include the sender + full message</span></div>
-        </div>
-
-        <div id="linkPane" class="input-pane hidden">
-          <div class="url-box"><span>https://</span><input id="urlInput" placeholder="example.com/suspicious-offer"></div>
-          <div class="link-note"><span class="dot-blue"></span> The agent can inspect the public page text before making its assessment.</div>
-        </div>
-
-        <div id="screenshotPane" class="input-pane hidden">
-          <div class="dropzone" id="dropzone">
-            <div class="upload-icon">↥</div>
-            <strong>Screenshot mode</strong>
-            <p>Upload a screenshot, then paste its visible text below for analysis.</p>
-            <label class="upload-label">Choose image <input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp"></label>
-            <span id="fileName">No image selected</span>
-          </div>
-          <textarea id="ocrInput" maxlength="12000" placeholder="Paste the text visible in your screenshot here…"></textarea>
-        </div>
-
-        <div class="examples">
-          <span>Try an example</span>
-          <button data-example="internship">Fake internship</button>
-          <button data-example="bank">Bank / KYC</button>
-          <button data-example="delivery">Delivery</button>
-        </div>
-
-        <button id="analyzeBtn" class="analyze-btn">
-          <span>Analyze with ScamShield</span><span class="arrow">→</span>
-        </button>
-        <div id="errorBox" class="error-box hidden"></div>
-      </div>
-
-      <aside class="side-card card">
-        <div class="section-kicker">HOW IT WORKS</div>
-        <div class="flow">
-          <div class="flow-row"><span class="flow-num pink">01</span><div><strong>Read</strong><p>Understands the message or link.</p></div></div>
-          <div class="flow-line"></div>
-          <div class="flow-row"><span class="flow-num yellow">02</span><div><strong>Reason</strong><p>Finds concrete scam signals.</p></div></div>
-          <div class="flow-line"></div>
-          <div class="flow-row"><span class="flow-num green">03</span><div><strong>Protect</strong><p>Builds a simple action plan.</p></div></div>
-        </div>
-        <div class="safety-box"><span>✓</span><div><strong>Designed for awareness</strong><p>Use the result as a warning signal, not as proof of identity or legitimacy.</p></div></div>
-      </aside>
-    </section>
-
-    <section id="resultSection" class="result-section hidden">
-      <div class="result-header">
-        <div><div class="section-kicker">SCAMSHIELD REPORT</div><h2>Your safety snapshot</h2></div>
-        <button id="newScanBtn" class="ghost-btn">＋ New scan</button>
-      </div>
-      <div id="resultCard" class="result-card card"></div>
-    </section>
-
-    <section class="history-section">
-      <div class="result-header">
-        <div><div class="section-kicker">RECENT CHECKS</div><h2>Scan history</h2></div>
-        <button id="refreshHistory" class="ghost-btn">↻ Refresh</button>
-      </div>
-      <div id="historyGrid" class="history-grid">
-        <div class="empty-history">Your recent checks will appear here.</div>
-      </div>
-    </section>
-  </main>
-
-  <footer><span>ScamShield</span><span>Built for safer digital decisions.</span><span>AI can be wrong — verify independently.</span></footer>
-  <script src="/app.js"></script>
+<div class="noise"></div>
+<header class="topbar">
+<a class="brand" href="./"><span class="brand-mark"><span></span></span><span>ScamShield</span></a>
+<div class="top-actions"><span class="privacy-pill"><i></i> No passwords. No OTPs.</span><button id="themeBtn" class="icon-btn" aria-label="Toggle light and dark mode" title="Toggle theme">☼</button></div>
+</header>
+<main class="shell">
+<section class="hero">
+<div class="eyebrow"><span class="spark">✦</span> AI scam-awareness agent</div>
+<h1>Is this message<br><em>trying to scam me?</em></h1>
+<p class="hero-copy">Paste a suspicious message or link. ScamShield looks for pressure, impersonation, payment traps and other red flags — then tells you what to do next.</p>
+<div class="mini-proof"><span>✦ Explainable</span><span>•</span><span>Fast</span><span>•</span><span>Action-focused</span></div>
+</section>
+<section class="workspace">
+<div class="analyzer-card card">
+<div class="card-top"><div><div class="section-kicker">CHECK SOMETHING</div><h2>Drop the suspicious content here.</h2></div><span class="agent-badge"><span class="pulse"></span> Agent ready</span></div>
+<div class="tabs" role="tablist"><button class="tab active" data-mode="message">▤ Message</button><button class="tab" data-mode="link">↗ Link</button><button class="tab" data-mode="screenshot">▧ Screenshot</button></div>
+<div id="messagePane" class="input-pane"><textarea id="messageInput" maxlength="12000" placeholder="Paste WhatsApp, email, SMS, internship offer, bank/KYC notice, payment request…"></textarea><div class="input-footer"><span id="charCount">0 / 12,000</span><span>Tip: include the sender + full message</span></div></div>
+<div id="linkPane" class="input-pane hidden"><div class="url-box"><span>https://</span><input id="urlInput" placeholder="example.com/suspicious-offer"></div><div class="link-note"><span class="dot-blue"></span> The agent can inspect the public page text before making its assessment.</div></div>
+<div id="screenshotPane" class="input-pane hidden"><div class="dropzone" id="dropzone"><div class="upload-icon">↥</div><strong>Screenshot mode</strong><p>Upload a screenshot, then paste its visible text below for analysis.</p><label class="upload-label">Choose image <input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp"></label><span id="fileName">No image selected</span></div><textarea id="ocrInput" maxlength="12000" placeholder="Paste the text visible in your screenshot here…"></textarea></div>
+<div class="examples"><span>Try an example</span><button data-example="internship">Fake internship</button><button data-example="bank">Bank / KYC</button><button data-example="delivery">Delivery</button></div>
+<button id="analyzeBtn" class="analyze-btn"><span>Analyze with ScamShield</span><span class="arrow">→</span></button><div id="errorBox" class="error-box hidden"></div>
+</div>
+<aside class="side-card card"><div class="section-kicker">HOW IT WORKS</div><div class="flow"><div class="flow-row"><span class="flow-num pink">01</span><div><strong>Read</strong><p>Understands the message or link.</p></div></div><div class="flow-line"></div><div class="flow-row"><span class="flow-num yellow">02</span><div><strong>Reason</strong><p>Finds concrete scam signals.</p></div></div><div class="flow-line"></div><div class="flow-row"><span class="flow-num green">03</span><div><strong>Protect</strong><p>Builds a simple action plan.</p></div></div></div><div class="safety-box"><span>✓</span><div><strong>Designed for awareness</strong><p>Use the result as a warning signal, not as proof of identity or legitimacy.</p></div></div></aside>
+</section>
+<section id="resultSection" class="result-section hidden"><div class="result-header"><div><div class="section-kicker">SCAMSHIELD REPORT</div><h2>Your safety snapshot</h2></div><button id="newScanBtn" class="ghost-btn">＋ New scan</button></div><div id="resultCard" class="result-card card"></div></section>
+<section class="history-section"><div class="result-header"><div><div class="section-kicker">RECENT CHECKS</div><h2>Scan history</h2></div><button id="refreshHistory" class="ghost-btn">↻ Refresh</button></div><div id="historyGrid" class="history-grid"><div class="empty-history">Your recent checks will appear here.</div></div></section>
+</main>
+<footer><span>ScamShield</span><span>Built for safer digital decisions.</span><span>AI can be wrong — verify independently.</span></footer>
+<script src="./app.js"></script>
 </body>
 </html>
