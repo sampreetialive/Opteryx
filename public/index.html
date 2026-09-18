@@ -61,9 +61,10 @@
           <div class="dropzone" id="dropzone">
             <div class="upload-icon">↥</div>
             <strong>Screenshot mode</strong>
-            <p>Upload a screenshot, then paste its visible text below for analysis.</p>
+            <p>Upload a screenshot and ScamShield will send the image directly to the AI analyzer.</p>
             <label class="upload-label">Choose image <input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp"></label>
             <span id="fileName">No image selected</span>
+            <img id="imagePreview" class="image-preview hidden" alt="Selected screenshot preview">
           </div>
           <textarea id="ocrInput" maxlength="12000" placeholder="Paste the text visible in your screenshot here…"></textarea>
         </div>
