@@ -35,11 +35,6 @@ $$(".examples button").forEach(btn => btn.onclick = () => {
   $("#messageInput").focus();
 });
 
-$("#fileInput").onchange = e => {
-  const f = e.target.files[0];
-  $("#fileName").textContent = f ? f.name : "No image selected";
-};
-
 function escapeHtml(s){
   return String(s ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 }
@@ -85,13 +80,58 @@ function renderResult(a, agentUsedTools, engine){
 function readImage(file){
   return new Promise((resolve, reject) => {
     if (!file) return resolve(null);
-    if (file.size > 3 * 1024 * 1024) return reject(new Error("Please keep screenshots under 3 MB."));
+    if (!/^image\\/(png|jpeg|webp)$/i.test(file.type)) return reject(new Error("Please choose a PNG, JPG, or WebP image."));
+    if (file.size > 8 * 1024 * 1024) return reject(new Error("Please keep screenshots under 8 MB."));
+
     const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const maxSide = 1600;
+        const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.82);
+        if (dataUrl.length > 5_000_000) return reject(new Error("That screenshot is still too large after compression. Try a smaller image."));
+        resolve(dataUrl);
+      };
+      img.onerror = () => reject(new Error("Could not decode that screenshot."));
+      img.src = String(reader.result);
+    };
     reader.onerror = () => reject(new Error("Could not read that screenshot."));
     reader.readAsDataURL(file);
   });
 }
+
+function setScreenshot(file){
+  if (!file) return;
+  $("#fileName").textContent = file.name + " · " + Math.round(file.size / 1024) + " KB";
+  const preview = $("#imagePreview");
+  preview.src = URL.createObjectURL(file);
+  preview.classList.remove("hidden");
+}
+
+$("#fileInput").addEventListener("change", e => setScreenshot(e.target.files[0]));
+$("#dropzone").addEventListener("dragover", e => { e.preventDefault(); $("#dropzone").classList.add("dragging"); });
+$("#dropzone").addEventListener("dragleave", () => $("#dropzone").classList.remove("dragging"));
+$("#dropzone").addEventListener("drop", e => {
+  e.preventDefault();
+  $("#dropzone").classList.remove("dragging");
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  const input = $("#fileInput");
+  try {
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    input.files = dt.files;
+    setScreenshot(file);
+  } catch {
+    setScreenshot(file);
+  }
+});
 
 function saveLocalScan(analysis, content){
   const scans = JSON.parse(localStorage.getItem("scamshield-local-history") || "[]");
