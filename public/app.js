@@ -95,7 +95,7 @@ function readImage(file){
         const ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         const dataUrl = canvas.toDataURL("image/jpeg", 0.82);
-        if (dataUrl.length > 5_000_000) return reject(new Error("That screenshot is still too large after compression. Try a smaller image."));
+        if (dataUrl.length > 3_200_000) return reject(new Error("That screenshot is still too large after compression. Try a smaller image."));
         resolve(dataUrl);
       };
       img.onerror = () => reject(new Error("Could not decode that screenshot."));
