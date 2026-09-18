@@ -127,7 +127,7 @@ async function geminiAnalyze({message,url,image,page}) {
   ].filter(Boolean).join("\n\n")}];
   if (image) {
     const match = /^data:(image\/(?:png|jpeg|webp));base64,(.+)$/i.exec(image);
-    if (!match || match[2].length > 4_000_000) throw new Error("Screenshot is too large. Keep it under 3 MB.");
+    if (!match || match[2].length > 3_200_000) throw new Error("Screenshot is too large. Please use a smaller screenshot.");
     parts.push({inline_data:{mime_type:match[1], data:match[2]}});
   }
   const response = await fetch(GEMINI_URL, {
