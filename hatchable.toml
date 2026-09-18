@@ -1,0 +1,3 @@
+[ai]
+required = true
+description = "ScamShield uses an AI agent to analyze suspicious messages, inspect supplied links, explain red flags, and generate a safe action plan."
