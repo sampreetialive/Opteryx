@@ -1,6 +1,7 @@
 # 🛡️ ScamShield
 
 A minimalist scam-awareness web app with a free backend.
+Link to the webpage: https://sampreetialive.github.io/Opteryx/
 
 ## Stack
 
