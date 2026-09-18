@@ -1,2 +1,2 @@
-# Opteryx
+# ScamShield
 AWS Hackathon
