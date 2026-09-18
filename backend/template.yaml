@@ -1,0 +1,117 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: ScamShield AWS backend.
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 30
+    MemorySize: 512
+    Environment:
+      Variables:
+        BEDROCK_MODEL_ID: amazon.nova-lite-v1:0
+        SCAN_TABLE_NAME: !Ref ScanHistoryTable
+        UPLOAD_BUCKET: !Ref ScreenshotBucket
+
+Resources:
+  ScamShieldApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins: ["*"]
+        AllowHeaders: ["content-type"]
+        AllowMethods: ["GET", "POST", "OPTIONS"]
+
+  AnalyzeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/handlers/analyze.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ScanHistoryTable
+        - S3ReadPolicy:
+            BucketName: !Ref ScreenshotBucket
+        - Statement:
+            - Effect: Allow
+              Action: ["bedrock:Converse"]
+              Resource: "*"
+      Events:
+        Analyze:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ScamShieldApi
+            Path: /analyze
+            Method: POST
+
+  HistoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/handlers/history.handler
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref ScanHistoryTable
+      Events:
+        History:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ScamShieldApi
+            Path: /history
+            Method: GET
+
+  UploadFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/handlers/upload.handler
+      Policies:
+        - S3WritePolicy:
+            BucketName: !Ref ScreenshotBucket
+      Events:
+        Upload:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ScamShieldApi
+            Path: /upload
+            Method: POST
+
+  ScanHistoryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  ScreenshotBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteUploadsAfterOneDay
+            Status: Enabled
+            ExpirationInDays: 1
+
+Outputs:
+  ApiUrl:
+    Description: ScamShield API base URL
+    Value: !Sub "https://\${ScamShieldApi}.execute-api.\${AWS::Region}.amazonaws.com"
+  ScanHistoryTableName:
+    Value: !Ref ScanHistoryTable
+  ScreenshotBucketName:
+    Value: !Ref ScreenshotBucket
