@@ -60,6 +60,14 @@ async function analyze(){
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({message,url,image})
     });
+    const contentType=r.headers.get("content-type")||"";
+    if(!contentType.includes("application/json")){
+      const raw=await r.text();
+      if(/<html|<!doctype/i.test(raw)){
+        throw Error("The ScamShield backend is not deployed at /api/analyze. This site is currently being served as a static page, so the screenshot cannot reach Gemini. Deploy the repository root on Vercel (Root Directory must be blank) and add GEMINI_API_KEY there.");
+      }
+      throw Error("The analysis server returned an unexpected response.");
+    }
     const d=await r.json();
     if(!r.ok) throw Error(d.error||"Analysis failed");
     render(d.analysis,true);
