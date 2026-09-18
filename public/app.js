@@ -26,11 +26,10 @@ $$(".tab").forEach(btn => btn.onclick = () => {
 $("#messageInput").addEventListener("input", e => $("#charCount").textContent = e.target.value.length.toLocaleString() + " / 12,000");
 $$(".examples button").forEach(btn => btn.onclick = () => {
   const value = examples[btn.dataset.example];
-  if (btn.dataset.example === "delivery" || btn.dataset.example === "bank") {
-    mode = "message"; $$(".tab").forEach(x => x.classList.toggle("active", x.dataset.mode === "message"));
-    ["messagePane","linkPane","screenshotPane"].forEach(id => $("#" + id).classList.add("hidden"));
-    $("#messagePane").classList.remove("hidden");
-  }
+  mode = "message";
+  $$(".tab").forEach(x => x.classList.toggle("active", x.dataset.mode === "message"));
+  ["messagePane","linkPane","screenshotPane"].forEach(id => $("#" + id).classList.add("hidden"));
+  $("#messagePane").classList.remove("hidden");
   $("#messageInput").value = value;
   $("#messageInput").dispatchEvent(new Event("input"));
   $("#messageInput").focus();
@@ -49,7 +48,7 @@ function riskColor(level){
   return level === "HIGH" ? "var(--red)" : level === "LOW" ? "var(--green)" : "var(--yellow)";
 }
 
-function renderResult(a, agentUsedTools){
+function renderResult(a, agentUsedTools, engine){
   const score = Number(a.risk_score) || 0;
   const color = riskColor(a.risk_level);
   const why = Array.isArray(a.why) ? a.why : [];
@@ -77,21 +76,51 @@ function renderResult(a, agentUsedTools){
       <h4>SAFE ACTION PLAN</h4>
       <div class="actions">${actions.slice(0,3).map((x,i) => `<div class="action-item"><b>${i+1}. ${escapeHtml(x.priority || "NEXT").toUpperCase()}</b><p>${escapeHtml(x.step || "")}</p></div>`).join("")}</div>
     </div>
-    <div class="agent-note">${agentUsedTools ? "✦ <strong>Agent action:</strong> ScamShield inspected the supplied public link before completing this report." : "✦ <strong>Agent reasoning:</strong> The report is based on the content you supplied."}</div>
+    <div class="agent-note">✦ <strong>${engine === "gemini" ? "AI agent:" : "Local safety engine:"}</strong> ${agentUsedTools ? "ScamShield inspected the supplied public link before completing this report." : engine === "gemini" ? "Gemini analyzed the supplied content and returned a structured safety report." : "This scan used the built-in rule engine because no AI key is configured yet."}</div>
   `;
   $("#resultSection").classList.remove("hidden");
   $("#resultSection").scrollIntoView({behavior:"smooth", block:"start"});
 }
 
+function readImage(file){
+  return new Promise((resolve, reject) => {
+    if (!file) return resolve(null);
+    if (file.size > 3 * 1024 * 1024) return reject(new Error("Please keep screenshots under 3 MB."));
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("Could not read that screenshot."));
+    reader.readAsDataURL(file);
+  });
+}
+
+function saveLocalScan(analysis, content){
+  const scans = JSON.parse(localStorage.getItem("scamshield-local-history") || "[]");
+  scans.unshift({
+    id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+    input_type: mode === "link" ? "link" : mode === "screenshot" ? "screenshot" : "message",
+    content_preview: String(content || "").slice(0, 500),
+    risk_score: analysis.risk_score,
+    risk_level: analysis.risk_level,
+    category: analysis.category,
+    created_at: new Date().toISOString()
+  });
+  localStorage.setItem("scamshield-local-history", JSON.stringify(scans.slice(0, 8)));
+}
+
 async function analyze(){
   const btn = $("#analyzeBtn"), error = $("#errorBox");
   error.classList.add("hidden");
-  let message = "", url = "";
+  let message = "", url = "", image = null;
   if (mode === "message") message = $("#messageInput").value.trim();
   if (mode === "link") url = $("#urlInput").value.trim();
-  if (mode === "screenshot") message = $("#ocrInput").value.trim();
+  if (mode === "screenshot") {
+    message = $("#ocrInput").value.trim();
+    try { image = await readImage($("#fileInput").files[0]); } catch(e) {
+      error.textContent = e.message; error.classList.remove("hidden"); return;
+    }
+  }
 
-  if (!message && !url){
+  if (!message && !url && !image){
     error.textContent = "Add something to analyze first.";
     error.classList.remove("hidden");
     return;
@@ -100,13 +129,14 @@ async function analyze(){
   btn.disabled = true;
   btn.querySelector("span").textContent = "Agent is analyzing…";
   try{
-    const r = await fetch(window.__HATCHABLE__.api + "/analyze", {
+    const r = await fetch("/api/analyze", {
       method:"POST", headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({message,url})
+      body:JSON.stringify({message,url,image})
     });
     const data = await r.json();
     if (!r.ok) throw new Error(data.error || "Analysis failed.");
-    renderResult(data.analysis, data.agent_used_tools);
+    renderResult(data.analysis, data.agent_used_tools, data.engine);
+    saveLocalScan(data.analysis, message || url || "Screenshot");
     loadHistory();
   }catch(e){
     error.textContent = e.message || "Something went wrong. Please try again.";
@@ -123,20 +153,29 @@ $("#refreshHistory").onclick = loadHistory;
 function formatTime(v){
   try{return new Date(v).toLocaleString([], {month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});}catch{return "";}
 }
+
+function renderHistory(scans){
+  if (!scans?.length) {
+    $("#historyGrid").innerHTML = '<div class="empty-history">Your recent checks will appear here.</div>';
+    return;
+  }
+  $("#historyGrid").innerHTML = scans.map(s => {
+    const color = riskColor(s.risk_level);
+    return `<div class="history-item">
+      <div class="history-top"><span class="history-risk" style="color:${color}">${escapeHtml(s.risk_level)}</span><span class="history-score">${s.risk_score}</span></div>
+      <div class="history-cat">${escapeHtml(s.category)}</div>
+      <div class="history-preview">${escapeHtml(s.content_preview)}</div>
+      <div class="history-time">${formatTime(s.created_at)}</div>
+    </div>`;
+  }).join("");
+}
+
 async function loadHistory(){
   try{
-    const r = await fetch(window.__HATCHABLE__.api + "/history");
+    const r = await fetch("/api/history");
     const data = await r.json();
-    if (!data.scans?.length) return;
-    $("#historyGrid").innerHTML = data.scans.map(s => {
-      const color = riskColor(s.risk_level);
-      return `<div class="history-item">
-        <div class="history-top"><span class="history-risk" style="color:${color}">${escapeHtml(s.risk_level)}</span><span class="history-score">${s.risk_score}</span></div>
-        <div class="history-cat">${escapeHtml(s.category)}</div>
-        <div class="history-preview">${escapeHtml(s.content_preview)}</div>
-        <div class="history-time">${formatTime(s.created_at)}</div>
-      </div>`;
-    }).join("");
+    if (data.scans?.length) return renderHistory(data.scans);
   }catch(e){}
+  renderHistory(JSON.parse(localStorage.getItem("scamshield-local-history") || "[]"));
 }
 loadHistory();
