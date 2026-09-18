@@ -1,42 +1,89 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#0b0b0f">
-<title>ScamShield — Is this trying to scam me?</title>
-<meta name="description" content="ScamShield uses an AI agent to explain suspicious messages, links and payment requests and give you a safe action plan.">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#08090d">
+<title>ScamShield — Check before you click</title>
+<meta name="description" content="ScamShield helps you understand suspicious messages, links and screenshots before you click, pay or reply.">
 <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-<div class="noise"></div>
+<div class="ambient ambient-a"></div><div class="ambient ambient-b"></div><div class="noise"></div>
 <header class="topbar">
-<a class="brand" href="./"><span class="brand-mark"><span></span></span><span>ScamShield</span></a>
-<div class="top-actions"><span class="privacy-pill"><i></i> No passwords. No OTPs.</span><button id="themeBtn" class="icon-btn" aria-label="Toggle light and dark mode" title="Toggle theme">☼</button></div>
+  <a class="brand" href="./"><span class="brand-mark">✦</span><span>Scam<span>Shield</span></span></a>
+  <nav class="navlinks"><a href="#scanner">Scan</a><a href="#intelligence">Intelligence</a><a href="#plans">Plans</a><a href="#learn">Learn</a></nav>
+  <div class="top-actions"><a class="emergency-mini" href="#emergency">🚨 Emergency help</a><button id="themeBtn" class="icon-btn" aria-label="Toggle theme">☼</button></div>
 </header>
-<main class="shell">
-<section class="hero">
-<div class="eyebrow"><span class="spark">✦</span> AI scam-awareness agent</div>
-<h1>Is this message<br><em>trying to scam me?</em></h1>
-<p class="hero-copy">Paste a suspicious message or link. ScamShield looks for pressure, impersonation, payment traps and other red flags — then tells you what to do next.</p>
-<div class="mini-proof"><span>✦ Explainable</span><span>•</span><span>Fast</span><span>•</span><span>Action-focused</span></div>
+
+<main>
+<section class="hero shell">
+  <div class="hero-copy-wrap">
+    <div class="eyebrow"><span>✦</span> AI-powered scam intelligence</div>
+    <h1>Before you click.<br><span>Before you pay.</span><br>Check it.</h1>
+    <p>ScamShield analyzes suspicious messages, links and screenshots, explains the warning signs, checks community signals, and gives you a safer next step.</p>
+    <div class="hero-actions"><a class="primary-btn" href="#scanner">Scan something suspicious <b>→</b></a><a class="secondary-btn" href="#how">See how it works</a></div>
+    <div class="trust-row"><span>✓ Explainable analysis</span><span>✓ Community signals</span><span>✓ Action-focused</span></div>
+  </div>
+  <div class="hero-visual" aria-label="ScamShield security analysis preview">
+    <div class="orbit orbit-1"></div><div class="orbit orbit-2"></div>
+    <div class="float-card fc-one"><b>🔗 Suspicious URL</b><small>Lookalike domain detected</small></div>
+    <div class="shield-core"><div class="shield-glow"></div><div class="shield">🛡</div><div class="scan-line"></div><span>AI<br>SCAN</span></div>
+    <div class="float-card fc-two"><b>🚩 1,284 reports</b><small>Community signal · High activity</small></div>
+    <div class="float-card fc-three"><b>92% confidence</b><small>5 warning signals found</small></div>
+  </div>
 </section>
-<section class="workspace">
-<div class="analyzer-card card">
-<div class="card-top"><div><div class="section-kicker">CHECK SOMETHING</div><h2>Drop the suspicious content here.</h2></div><span class="agent-badge"><span class="pulse"></span> Agent ready</span></div>
-<div class="tabs" role="tablist"><button class="tab active" data-mode="message">▤ Message</button><button class="tab" data-mode="link">↗ Link</button><button class="tab" data-mode="screenshot">▧ Screenshot</button></div>
-<div id="messagePane" class="input-pane"><textarea id="messageInput" maxlength="12000" placeholder="Paste WhatsApp, email, SMS, internship offer, bank/KYC notice, payment request…"></textarea><div class="input-footer"><span id="charCount">0 / 12,000</span><span>Tip: include the sender + full message</span></div></div>
-<div id="linkPane" class="input-pane hidden"><div class="url-box"><span>https://</span><input id="urlInput" placeholder="example.com/suspicious-offer"></div><div class="link-note"><span class="dot-blue"></span> The agent can inspect the public page text before making its assessment.</div></div>
-<div id="screenshotPane" class="input-pane hidden"><div class="dropzone" id="dropzone"><div class="upload-icon">↥</div><strong>Screenshot mode</strong><p>Upload a screenshot, then paste its visible text below for analysis.</p><label class="upload-label">Choose image <input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp"></label><span id="fileName">No image selected</span></div><textarea id="ocrInput" maxlength="12000" placeholder="Paste the text visible in your screenshot here…"></textarea></div>
-<div class="examples"><span>Try an example</span><button data-example="internship">Fake internship</button><button data-example="bank">Bank / KYC</button><button data-example="delivery">Delivery</button></div>
-<button id="analyzeBtn" class="analyze-btn"><span>Analyze with ScamShield</span><span class="arrow">→</span></button><div id="errorBox" class="error-box hidden"></div>
-</div>
-<aside class="side-card card"><div class="section-kicker">HOW IT WORKS</div><div class="flow"><div class="flow-row"><span class="flow-num pink">01</span><div><strong>Read</strong><p>Understands the message or link.</p></div></div><div class="flow-line"></div><div class="flow-row"><span class="flow-num yellow">02</span><div><strong>Reason</strong><p>Finds concrete scam signals.</p></div></div><div class="flow-line"></div><div class="flow-row"><span class="flow-num green">03</span><div><strong>Protect</strong><p>Builds a simple action plan.</p></div></div></div><div class="safety-box"><span>✓</span><div><strong>Designed for awareness</strong><p>Use the result as a warning signal, not as proof of identity or legitimacy.</p></div></div></aside>
+
+<section class="signal-strip"><div class="shell signal-inner"><span>SCAMSHIELD CHECKS</span><b>Messages</b><i>•</i><b>URLs</b><i>•</i><b>Screenshots</b><i>•</i><b>Payment traps</b><i>•</i><b>Impersonation</b><i>•</i><b>Urgency</b></div></section>
+
+<section id="scanner" class="section shell">
+  <div class="section-heading"><div><div class="kicker">01 / ANALYZE</div><h2>Analyze anything suspicious.</h2><p>Paste it, upload it, or drop in a link. Start with a quick scan and go deeper when you need to.</p></div><span class="live-badge"><i></i> Scanner ready</span></div>
+  <div class="scanner-layout">
+    <div class="analyzer card">
+      <div class="tabs"><button class="tab active" data-mode="message">💬 Message</button><button class="tab" data-mode="link">🔗 Link</button><button class="tab" data-mode="screenshot">🖼 Screenshot</button></div>
+      <div id="messagePane" class="pane"><textarea id="messageInput" maxlength="12000" placeholder="Paste a WhatsApp, SMS, email, job offer, bank notice or payment request…"></textarea><div class="input-meta"><span id="charCount">0 / 12,000</span><span>Tip: include sender + full message</span></div></div>
+      <div id="linkPane" class="pane hidden"><div class="url-input"><span>https://</span><input id="urlInput" placeholder="example.com/suspicious-offer"></div><div class="hint">🔎 URL mode will be connected to live reputation checks in the AWS backend.</div></div>
+      <div id="screenshotPane" class="pane hidden"><div class="dropzone" id="dropzone"><div class="upload-icon">↥</div><b>Drop a screenshot here</b><p>PNG, JPG or WebP · OCR analysis coming with AWS Textract</p><label class="upload-btn">Choose image<input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp"></label><small id="fileName">No image selected</small></div><textarea id="ocrInput" maxlength="12000" placeholder="Optional: paste visible text for the demo analysis…"></textarea></div>
+      <div class="examples"><span>Try:</span><button data-example="bank">Fake bank SMS</button><button data-example="job">Fake job offer</button><button data-example="delivery">Delivery fee</button></div>
+      <button id="analyzeBtn" class="primary-btn analyze"><span>Analyze with ScamShield</span><b>→</b></button><div id="errorBox" class="error hidden"></div>
+    </div>
+    <aside class="scanner-side card" id="how"><div class="kicker">HOW IT WORKS</div><div class="steps">
+      <div><span class="step-no pink">01</span><section><b>Read</b><p>Understand the content and extract useful signals.</p></section></div>
+      <div class="step-line"></div><div><span class="step-no yellow">02</span><section><b>Reason</b><p>Look for urgency, impersonation, payment traps and suspicious links.</p></section></div>
+      <div class="step-line"></div><div><span class="step-no green">03</span><section><b>Protect</b><p>Explain the evidence and turn it into a practical action plan.</p></section></div>
+    </div><div class="reliability"><span>✓</span><div><b>Built for safer decisions</b><p>Risk and community reports are signals, not proof. Always verify independently.</p></div></div></aside>
+  </div>
 </section>
-<section id="resultSection" class="result-section hidden"><div class="result-header"><div><div class="section-kicker">SCAMSHIELD REPORT</div><h2>Your safety snapshot</h2></div><button id="newScanBtn" class="ghost-btn">＋ New scan</button></div><div id="resultCard" class="result-card card"></div></section>
-<section class="history-section"><div class="result-header"><div><div class="section-kicker">RECENT CHECKS</div><h2>Scan history</h2></div><button id="refreshHistory" class="ghost-btn">↻ Refresh</button></div><div id="historyGrid" class="history-grid"><div class="empty-history">Your recent checks will appear here.</div></div></section>
+
+<section id="resultSection" class="section shell hidden"><div class="section-heading"><div><div class="kicker">02 / REPORT</div><h2>Your security report.</h2></div><button id="newScanBtn" class="secondary-btn">＋ New scan</button></div><div id="resultCard" class="report card"></div></section>
+
+<section id="intelligence" class="section shell">
+  <div class="section-heading"><div><div class="kicker">03 / SCAM INTELLIGENCE</div><h2>See the story behind a warning.</h2><p>Community reports add context without pretending that a report count is absolute proof.</p></div></div>
+  <div class="intel-grid">
+    <article class="intel-card card"><div class="intel-top"><span class="danger-dot"></span><span>COMMUNITY SIGNAL</span></div><strong>1,284</strong><b>reports associated with this indicator</b><div class="mini-bars"><i style="height:28%"></i><i style="height:38%"></i><i style="height:45%"></i><i style="height:42%"></i><i style="height:58%"></i><i style="height:74%"></i><i style="height:91%"></i></div><small>Activity increased recently</small></article>
+    <article class="intel-card card"><div class="intel-top"><span class="blue-dot"></span><span>REPORT HISTORY</span></div><div class="timeline"><div><b>Mar 14</b><span>First report</span></div><div><b>Jun 09</b><span>306 total reports</span></div><div><b>Aug 17</b><span>490 total reports</span></div><div><b>Today</b><span>1,284 total reports</span></div></div></article>
+    <article class="intel-card card"><div class="intel-top"><span class="green-dot"></span><span>REPORTED FOR</span></div><div class="report-types"><span>🎣 Phishing <b>742</b></span><span>💳 Payment fraud <b>381</b></span><span>🔐 Credential theft <b>104</b></span><span>🎭 Impersonation <b>57</b></span></div></article>
+  </div>
+</section>
+
+<section class="section shell feature-section"><div class="feature-copy"><div class="kicker">EXPLAINABLE BY DESIGN</div><h2>Don't just get a verdict. Learn why.</h2><p>ScamShield highlights the specific behaviors that triggered a warning, then shows the safest next move.</p><div class="feature-points"><span>🔴 Suspicious login URL</span><span>🟡 Urgency language</span><span>🔴 OTP request</span><span>🟡 Impersonation</span></div></div><div class="message-preview card"><div class="preview-head"><span>Incoming message</span><span>•••</span></div><p>Your account will be <mark>blocked within 10 minutes</mark>. Verify now and send your <mark>OTP</mark> to continue.</p><div class="annotation"><b>⚠ Why?</b> Pressure + credential request are common scam signals.</div></div></section>
+
+<section id="emergency" class="section shell emergency"><div class="emergency-head"><span class="emergency-icon">🚨</span><div><div class="kicker">URGENT HELP · INDIA</div><h2>Already been scammed?</h2><p>Act quickly. ScamShield gives you the next steps, but official authorities and your bank/payment provider should handle the incident.</p></div></div><div class="emergency-grid">
+  <a class="urgent-card red" href="tel:1930"><span>01</span><b>Call 1930</b><strong>Cyber Crime Helpline</strong><small>For immediate reporting of cyber financial fraud. Available 24×7.</small><em>📞 Call now →</em></a>
+  <a class="urgent-card blue" href="https://www.cybercrime.gov.in/" target="_blank" rel="noopener"><span>02</span><b>Report online</b><strong>National Cyber Crime Reporting Portal</strong><small>File and track a cybercrime complaint through the official government portal.</small><em>Open portal →</em></a>
+  <div class="urgent-card dark"><span>03</span><b>Secure your accounts</b><strong>Contact your bank / provider</strong><small>Use the official app, website or number on your card. Don't use a number supplied by the scammer.</small><em>Preserve evidence →</em></div>
+</div><div class="evidence"><b>Keep your evidence</b><span>✓ Screenshots</span><span>✓ Transaction IDs / receipts</span><span>✓ URLs & phone numbers</span><span>✓ Emails & chat transcripts</span><span>✓ Date & time</span></div></section>
+
+<section id="plans" class="section shell plans"><div class="center-heading"><div class="kicker">04 / PLANS</div><h2>More protection when you need it.</h2><p>Start free. Upgrade for deeper intelligence and higher usage.</p></div><div class="plan-grid">
+  <article class="plan card"><div class="plan-name">FREE</div><h3>Stay Protected</h3><div class="price">₹0 <small>forever</small></div><p>For everyday checks and learning.</p><ul><li>5 AI scans / month</li><li>Message analysis</li><li>Basic URL analysis</li><li>Screenshot analysis</li><li>Risk + explanation</li><li>Community report counts</li><li>Scan history</li><li>Emergency help center</li></ul><button class="secondary-btn plan-btn">Start scanning</button></article>
+  <article class="plan card popular"><div class="popular-tag">MOST POPULAR</div><div class="plan-name">PRO MONTHLY</div><h3>Protect More</h3><div class="price">₹199 <small>/ month</small></div><p>For frequent scanning and deeper intelligence.</p><ul><li>Higher usage limits*</li><li>Advanced URL intelligence</li><li>Historical report trends</li><li>Similar scam reports</li><li>Detailed explanations</li><li>Saved reports</li><li>Full scan history</li><li>Advanced recovery guidance</li></ul><button class="primary-btn plan-btn">Go Pro →</button></article>
+  <article class="plan card"><div class="save-tag">SAVE ~16%</div><div class="plan-name">PRO YEARLY</div><h3>Maximum Protection</h3><div class="price">₹1,999 <small>/ year</small></div><p>Pro features with annual billing.</p><ul><li>Everything in Pro Monthly</li><li>Higher usage limits*</li><li>Advanced URL intelligence</li><li>Historical report trends</li><li>Saved reports</li><li>Full scan history</li><li>Priority analysis</li><li>Advanced recovery guidance</li></ul><button class="secondary-btn plan-btn">Choose yearly</button></article>
+</div><p class="fineprint">*Final usage limits, payment provider and subscription terms will be configured before launch. “Community reports” describe user-submitted reports and are not proof by themselves.</p></section>
+
+<section id="learn" class="section shell learn"><div class="section-heading"><div><div class="kicker">05 / LEARN</div><h2>Know the patterns. Spot them faster.</h2></div></div><div class="learn-grid"><span>🏦 Banking & KYC</span><span>💼 Job scams</span><span>📦 Delivery scams</span><span>🎁 Fake prizes</span><span>💸 Investment scams</span><span>🔐 Account takeover</span><span>🎭 Impersonation</span><span>📱 OTP scams</span></div></section>
+
+<section class="final-cta shell"><div><div class="kicker">WHEN IN DOUBT</div><h2>Pause. Check. Then act.</h2><p>One quick scan can turn a suspicious moment into an informed decision.</p></div><a class="primary-btn" href="#scanner">Start a scan →</a></section>
 </main>
-<footer><span>ScamShield</span><span>Built for safer digital decisions.</span><span>AI can be wrong — verify independently.</span></footer>
+
+<footer><div><b>ScamShield</b><span>AI-powered scam awareness.</span></div><div><a href="#plans">Plans</a><a href="#learn">Learn</a><a href="#emergency">Emergency help</a><a href="https://www.cybercrime.gov.in/" target="_blank" rel="noopener">Official cybercrime portal</a></div><small>AI can be wrong. Verify independently.</small></footer>
 <script src="./app.js"></script>
-</body>
-</html>
+</body></html>
