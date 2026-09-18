@@ -123,11 +123,11 @@ async function geminiAnalyze({message,url,image,page}) {
     message ? "MESSAGE:\n" + message : "",
     url ? "URL:\n" + url : "",
     page ? "PUBLIC PAGE SAMPLE:\n" + JSON.stringify(page) : "",
-    image ? "A screenshot is attached. Inspect its visible text and warning signals." : ""
+    image ? "SCREENSHOT TASK: Analyze ONLY the attached screenshot as the primary evidence. Read all visible text, URLs, names, logos, buttons, payment requests, warnings, sender details, and other visual context. Do not require the user to paste OCR text. If text is unreadable, say what is uncertain rather than inventing it." : ""
   ].filter(Boolean).join("\n\n")}];
   if (image) {
     const match = /^data:(image\/(?:png|jpeg|webp));base64,(.+)$/i.exec(image);
-    if (!match || match[2].length > 3_200_000) throw new Error("Screenshot is too large. Please use a smaller screenshot.");
+    if (!match || match[2].length > 3_000_000) throw new Error("Screenshot is too large. Please use a smaller screenshot.");
     parts.push({inline_data:{mime_type:match[1], data:match[2]}});
   }
   const response = await fetch(GEMINI_URL, {
@@ -174,6 +174,7 @@ export default async function handler(req,res) {
     const message = typeof body.message === "string" ? body.message.trim().slice(0,12000) : "";
     const url = typeof body.url === "string" ? body.url.trim().slice(0,2000) : "";
     const image = typeof body.image === "string" ? body.image : "";
+    if (image && image.length > 3_000_000) return res.status(413).json({error:"Screenshot payload is too large. Please upload a smaller screenshot."});
     if (!message && !url && !image) return res.status(400).json({error:"Paste a message, add a link, or upload a screenshot."});
     if (url && !/^https?:\/\//i.test(url)) return res.status(400).json({error:"Links must start with http:// or https://."});
 
@@ -187,11 +188,13 @@ export default async function handler(req,res) {
         analysis = await geminiAnalyze({message,url,image,page});
         engine = "gemini";
       } catch (e) {
-        console.error("Gemini unavailable; using local fallback:", e.message);
-        analysis = heuristic(message, url, Boolean(image));
+        console.error("Gemini unavailable:", e.message);
+        if (image) return res.status(502).json({error:"Screenshot AI analysis failed: " + e.message});
+        analysis = heuristic(message, url, false);
       }
     } else {
-      analysis = heuristic(message, url, Boolean(image));
+      if (image) return res.status(503).json({error:"Screenshot analysis needs GEMINI_API_KEY in the deployed Vercel environment."});
+      analysis = heuristic(message, url, false);
     }
 
     const inputType = image ? "screenshot" : url ? "link" : "message";
