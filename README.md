@@ -1,62 +1,99 @@
 # 🛡️ ScamShield
 
-A minimalist scam-awareness web app with a free backend.
+ScamShield is a scam-awareness web app for suspicious messages, links and screenshots.
 
-Live static demo: https://sampreetialive.github.io/Opteryx/
+## Simple architecture
 
-## Stack
+**GitHub Pages → Supabase Edge Function → Groq**
 
-- Frontend: vanilla HTML/CSS/JavaScript
-- Backend: Vercel serverless functions
-- AI: Groq API with a multimodal vision model
-- Database: Supabase free tier (optional)
-- No AWS required
+Vercel is not required. Better Auth is not required. No API key is stored in the browser.
 
-## AI setup
+### Frontend
 
-ScamShield uses Groq for both text and screenshot analysis. The default model is `qwen/qwen3.6-27b`, which supports image inputs and JSON output.
+GitHub Pages serves the root:
 
-Set these as **Vercel Environment Variables**; never commit the key to GitHub:
+- `index.html`
+- `app.js`
+- `styles.css`
+- `config.js`
 
-```text
-GROQ_API_KEY=your_private_groq_key
-GROQ_MODEL=qwen/qwen3.6-27b
+### Backend
+
+The backend lives in:
+
+`supabase/functions/scamshield/index.js`
+
+Deploy it from the Supabase Dashboard as an Edge Function named `scamshield`.
+
+### Supabase secrets
+
+In **Supabase → Edge Functions → Secrets Management**, add:
+
+`GROQ_API_KEY` = your real Groq key
+
+Optional:
+
+`GROQ_MODEL` = `qwen/qwen3.6-27b`
+
+Optional:
+
+`SCAMSHIELD_ALLOWED_ORIGINS` = `https://sampreetialive.github.io`
+
+Never put the Groq key in `config.js` or GitHub.
+
+### Connect the frontend
+
+After deploying the Edge Function, its URL is:
+
+`https://YOUR_PROJECT_REF.supabase.co/functions/v1/scamshield`
+
+Put that URL in `config.js`:
+
+```js
+window.SCAMSHIELD_CONFIG = {
+  supabaseFunctionUrl: "https://YOUR_PROJECT_REF.supabase.co/functions/v1/scamshield"
+};
 ```
 
-Optional history variables:
+Then commit the change.
 
-```text
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SECRET_KEY=your_supabase_secret_key
+### Test the backend
+
+Open:
+
+`https://YOUR_PROJECT_REF.supabase.co/functions/v1/scamshield?action=health`
+
+It should return JSON and show `groq_configured: true` after the Groq secret is configured.
+
+### Database
+
+Persistent scan history is optional. The canonical schema is in `supabase/schema.sql`.
+
+### Validation
+
+```bash
+npm run check
 ```
 
-After changing environment variables, redeploy the Vercel project.
+The GitHub Pages workflow runs the same syntax check before deploying.
 
-## Screenshot analysis
+## What is implemented
 
-The browser compresses screenshots before sending them to `/api/analyze`. The backend sends the image itself to Groq's multimodal model, so users do **not** need to paste OCR text.
+- Message scanning
+- URL scanning with public-page inspection
+- Screenshot upload and multimodal AI analysis
+- Explainable risk scores
+- Safe action plans
+- GitHub Pages deployment
+- Supabase Edge Function backend
+- Groq AI
+- Optional Supabase scan history
+- Local message/link fallback when the backend URL is not configured
 
-Test the backend after deployment:
+## Prototype-only areas
 
-```text
-https://YOUR-VERCEL-DOMAIN/api/health
-```
-
-It should return JSON containing `groq_configured: true`.
-
-## Important
-
-GitHub Pages can host the frontend, but it cannot execute the `/api/*.js` serverless functions. Use the Vercel deployment URL for the working AI application.
-
-Never commit `.env.local`, API keys, or Supabase secrets to GitHub.
-
-Groq quotas/rate limits depend on the current Groq plan; an API key should be treated as a secret even if the account has a generous or effectively unlimited allowance.
-
-
-## Deployment
-
-GitHub Pages is static and cannot execute the server-side `/api/*.js` functions. The Pages workflow now validates JavaScript, copies the required assets, and keeps message/link scanning usable through a transparent local fallback when the backend is unavailable.
-
-For full AI analysis, deploy the **repository root** on Vercel and set `GROQ_API_KEY`. To make the GitHub Pages frontend call that Vercel backend, put the Vercel origin in `config.js` as `apiBaseUrl` and keep `https://sampreetialive.github.io` in `CORS_ORIGINS`.
-
-Supabase history is optional; a database failure no longer causes an otherwise successful scan to fail.
+- Community report moderation
+- Paid subscriptions
+- User accounts
+- Advanced persistent abuse/rate limiting
+- External URL reputation feeds
