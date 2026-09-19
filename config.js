@@ -1,5 +1,6 @@
-// Leave empty when frontend and /api routes are deployed together on Vercel.
-// For GitHub Pages + a separate Vercel backend, set this to the full Vercel origin.
+// Supabase Edge Function URL.
+// After deployment, paste:
+// https://YOUR_PROJECT_REF.supabase.co/functions/v1/scamshield
 window.SCAMSHIELD_CONFIG = {
-  apiBaseUrl: ""
+  supabaseFunctionUrl: ""
 };
