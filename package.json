@@ -4,11 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "description": "ScamShield scam-awareness web app",
-  "engines": {
-    "node": ">=20"
-  },
   "scripts": {
-    "build": "node -e \"console.log('ScamShield: static Vercel deployment; no build step required')\"",
-    "check": "node --check app.js && node --check api/analyze.js && node --check api/health.js && node --check api/history.js"
+    "check": "node --check app.js"
   }
 }
