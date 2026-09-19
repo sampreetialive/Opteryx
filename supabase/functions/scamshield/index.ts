@@ -178,8 +178,8 @@ async function inspectUrl(url) {
 
     const html = (await response.text()).slice(0, 120000);
     const text = html
-      .replace(/<script[\\s\\S]*?<\\/script>/gi, " ")
-      .replace(/<style[\\s\\S]*?<\\/style>/gi, " ")
+      .replace(/<script[^>]*>[\\s\\S]*?<\\/script>/gi, " ")
+      .replace(/<style[^>]*>[\\s\\S]*?<\\/style>/gi, " ")
       .replace(/<[^>]*>/g, " ")
       .replace(/\\s+/g, " ")
       .trim();
