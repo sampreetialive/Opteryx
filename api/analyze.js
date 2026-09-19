@@ -232,23 +232,32 @@ async function groqAnalyze({message,url,image,page}) {
 
 async function saveScan(inputType, content, analysis) {
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SECRET_KEY) return;
-  await fetch(process.env.SUPABASE_URL.replace(/\/$/,"") + "/rest/v1/scan_history", {
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json",
-      "apikey":process.env.SUPABASE_SECRET_KEY,
-      "Authorization":"Bearer " + process.env.SUPABASE_SECRET_KEY,
-      "Prefer":"return=minimal"
-    },
-    body:JSON.stringify({
-      input_type:inputType,
-      content_preview:String(content || "").slice(0,500),
-      risk_score:analysis.risk_score,
-      risk_level:analysis.risk_level,
-      category:analysis.category,
-      result_json:analysis
-    })
-  });
+  try {
+    const response = await fetchWithTimeout(
+      process.env.SUPABASE_URL.replace(/\/$/,"") + "/rest/v1/scan_history",
+      {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "apikey":process.env.SUPABASE_SECRET_KEY,
+          "Authorization":"Bearer " + process.env.SUPABASE_SECRET_KEY,
+          "Prefer":"return=minimal"
+        },
+        body:JSON.stringify({
+          input_type:inputType,
+          content_preview:String(content || "").slice(0,500),
+          risk_score:analysis.risk_score,
+          risk_level:analysis.risk_level,
+          category:analysis.category,
+          result_json:analysis
+        })
+      },
+      8000
+    );
+    if (!response.ok) console.error("Supabase save failed:", response.status);
+  } catch (error) {
+    console.error("Supabase save failed:", error.message);
+  }
 }
 
 export default async function handler(req,res) {
