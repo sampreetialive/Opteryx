@@ -1,3 +1,57 @@
+import dns from "node:dns/promises";
+import net from "node:net";
+
+const DEFAULT_CORS_ORIGIN="https://sampreetialive.github.io";
+
+function applyCors(req,res){
+  const origin=String(req?.headers?.origin||"");
+  const allowed=String(process.env.CORS_ORIGINS||DEFAULT_CORS_ORIGIN).split(",").map(x=>x.trim()).filter(Boolean);
+  const vercelOrigin=process.env.VERCEL_URL ? "https://"+process.env.VERCEL_URL : "";
+  if(origin&&(allowed.includes(origin)||origin===vercelOrigin)) res.setHeader("Access-Control-Allow-Origin",origin);
+  res.setHeader("Vary","Origin");
+  res.setHeader("Access-Control-Allow-Headers","Content-Type");
+  res.setHeader("Access-Control-Allow-Methods","GET,POST,OPTIONS");
+}
+
+function isPrivateIp(address){
+  const version=net.isIP(address);
+  if(version===4){
+    const p=address.split(".").map(Number),a=p[0],b=p[1];
+    return a===0||a===10||a===127||(a===100&&b>=64&&b<=127)||
+      (a===169&&b===254)||(a===172&&b>=16&&b<=31)||
+      (a===192&&(b===0||b===168))||(a===198&&(b===18||b===19||b===51))||
+      (a===203&&b===0)||a>=224;
+  }
+  if(version===6){
+    const h=address.toLowerCase();
+    return h==="::"||h==="::1"||h.startsWith("fc")||h.startsWith("fd")||
+      h.startsWith("fe8")||h.startsWith("fe9")||h.startsWith("fea")||
+      h.startsWith("feb")||h.startsWith("ff");
+  }
+  return false;
+}
+
+async function isSafePublicUrl(value){
+  try{
+    const u=new URL(value);
+    if(!["http:","https:"].includes(u.protocol)) return false;
+    const h=u.hostname.toLowerCase();
+    if(h==="localhost"||h.endsWith(".local")||h==="0.0.0.0"||h==="::1") return false;
+    if(net.isIP(h)) return !isPrivateIp(h);
+    const addresses=await dns.lookup(h,{all:true,verbatim:true});
+    return addresses.length>0 && addresses.every(x=>!isPrivateIp(x.address));
+  }catch{
+    return false;
+  }
+}
+
+async function fetchWithTimeout(url,options={},timeoutMs=8000){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),timeoutMs);
+  try{return await fetch(url,{...options,signal:controller.signal});}
+  finally{clearTimeout(timer);}
+}
+
 const MODEL = process.env.GROQ_MODEL || "qwen/qwen3.6-27b";
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 
@@ -108,14 +162,27 @@ function isSafePublicUrl(value) {
 }
 
 async function inspectUrl(url) {
-  if (!isSafePublicUrl(url)) return { error: "URL is not eligible for public-page inspection." };
+  if (!(await isSafePublicUrl(url))) {
+    return {error:"URL is not eligible for public-page inspection."};
+  }
   try {
-    const r = await fetch(url, { redirect: "manual", headers: {"user-agent":"ScamShield safety checker/1.0"} });
-    const type = r.headers.get("content-type") || "";
-    if (!r.ok || !type.includes("text")) return { status:r.status, content_type:type, text:"The public page could not be read as text." };
-    const html = await r.text();
-    const text = html.replace(/<script[\s\S]*?<\/script>/gi," ").replace(/<style[\s\S]*?<\/style>/gi," ").replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim();
-    return {status:r.status, final_url:url, text:text.slice(0,7000)};
+    const r=await fetchWithTimeout(url,{
+      redirect:"manual",
+      headers:{"user-agent":"ScamShield safety checker/1.0"}
+    },8000);
+    const type=r.headers.get("content-type")||"";
+    const location=r.headers.get("location")||"";
+    if(r.status>=300&&r.status<400){
+      return {status:r.status,redirected_to:location||null,text:"The site returned a redirect; ScamShield did not follow it automatically."};
+    }
+    if(!r.ok||!/^(text\/|application\/xhtml\+xml)/i.test(type)){
+      return {status:r.status,content_type:type,text:"The public page could not be read as text."};
+    }
+    const html=await r.text();
+    const text=html.replace(/<script[\s\S]*?<\/script>/gi," ")
+      .replace(/<style[\s\S]*?<\/style>/gi," ")
+      .replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim();
+    return {status:r.status,final_url:url,text:text.slice(0,7000)};
   } catch {
     return {error:"Could not retrieve the public page. Continue with the URL itself and state this limitation."};
   }
@@ -137,7 +204,7 @@ async function groqAnalyze({message,url,image,page}) {
     content.push({type:"image_url", image_url:{url:image}});
   }
 
-  const response = await fetch(GROQ_URL, {
+  const response = await fetchWithTimeout(GROQ_URL, {
     method:"POST",
     headers:{
       "Content-Type":"application/json",
@@ -151,9 +218,10 @@ async function groqAnalyze({message,url,image,page}) {
       ],
       temperature:0.2,
       max_completion_tokens:1600,
+      reasoning_effort:"none",
       response_format:{type:"json_object"}
     })
-  });
+  },20000);
 
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data?.error?.message || "Groq request failed.");
@@ -184,6 +252,8 @@ async function saveScan(inputType, content, analysis) {
 }
 
 export default async function handler(req,res) {
+  applyCors(req,res);
+  if(req.method==="OPTIONS") return res.status(204).end();
   if (req.method === "GET") {
     return res.status(200).json({
       ok:true,
@@ -195,7 +265,8 @@ export default async function handler(req,res) {
   if (req.method !== "POST") return res.status(405).json({error:"Method not allowed."});
 
   try {
-    const body = req.body || {};
+    let body=req.body||{};
+    if(typeof body==="string"){try{body=JSON.parse(body);}catch{body={};}}
     const message = typeof body.message === "string" ? body.message.trim().slice(0,12000) : "";
     const url = typeof body.url === "string" ? body.url.trim().slice(0,2000) : "";
     const image = typeof body.image === "string" ? body.image : "";
