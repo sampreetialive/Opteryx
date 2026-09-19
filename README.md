@@ -21,7 +21,7 @@ GitHub Pages serves the root:
 
 The backend lives in:
 
-`supabase/functions/scamshield/index.js`
+`supabase/functions/scamshield/index.ts`
 
 Deploy it from the Supabase Dashboard as an Edge Function named `scamshield`.
 
