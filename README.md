@@ -1,32 +1,53 @@
 # 🛡️ ScamShield
 
 A minimalist scam-awareness web app with a free backend.
-Link to the webpage: https://sampreetialive.github.io/Opteryx/
+
+Live static demo: https://sampreetialive.github.io/Opteryx/
 
 ## Stack
 
 - Frontend: vanilla HTML/CSS/JavaScript
 - Backend: Vercel serverless functions
-- AI: Gemini API free tier (optional; local rule engine fallback)
+- AI: Groq API with a multimodal vision model
 - Database: Supabase free tier (optional)
 - No AWS required
 
-## Setup
+## AI setup
 
-1. Copy `.env.example` to `.env.local`.
-2. Add a Gemini API key. The app still works without it using the local safety-rule engine.
-3. Optional: create a Supabase Free project and run `supabase/schema.sql`.
-4. Add `SUPABASE_URL` and `SUPABASE_SECRET_KEY` for persistent history.
-5. Deploy the repo to Vercel or run it with the Vercel CLI.
+ScamShield uses Groq for both text and screenshot analysis. The default model is `qwen/qwen3.6-27b`, which supports image inputs and JSON output.
 
-## Backend features
+Set these as **Vercel Environment Variables**; never commit the key to GitHub:
 
-- Gemini analysis for text and screenshots.
-- Public URL inspection without following redirects.
-- Local rule-based fallback when Gemini is unavailable.
-- Supabase-backed recent scan history when configured.
-- No passwords, OTPs, PINs, or card details requested.
+```text
+GROQ_API_KEY=your_private_groq_key
+GROQ_MODEL=qwen/qwen3.6-27b
+```
 
-Never commit `.env.local` or API secrets to GitHub. Use Vercel environment variables for secrets.
+Optional history variables:
 
-Current free-tier limits can change; check provider documentation before a demo.
+```text
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SECRET_KEY=your_supabase_secret_key
+```
+
+After changing environment variables, redeploy the Vercel project.
+
+## Screenshot analysis
+
+The browser compresses screenshots before sending them to `/api/analyze`. The backend sends the image itself to Groq's multimodal model, so users do **not** need to paste OCR text.
+
+Test the backend after deployment:
+
+```text
+https://YOUR-VERCEL-DOMAIN/api/health
+```
+
+It should return JSON containing `groq_configured: true`.
+
+## Important
+
+GitHub Pages can host the frontend, but it cannot execute the `/api/*.js` serverless functions. Use the Vercel deployment URL for the working AI application.
+
+Never commit `.env.local`, API keys, or Supabase secrets to GitHub.
+
+Groq quotas/rate limits depend on the current Groq plan; an API key should be treated as a secret even if the account has a generous or effectively unlimited allowance.
