@@ -64,7 +64,7 @@ async function analyze(){
     if(!contentType.includes("application/json")){
       const raw=await r.text();
       if(/<html|<!doctype/i.test(raw)){
-        throw Error("The ScamShield backend is not deployed at /api/analyze. This site is currently being served as a static page, so the screenshot cannot reach Gemini. Deploy the repository root on Vercel (Root Directory must be the repository root) and add GROQ_API_KEY there.");
+        throw Error("The ScamShield backend is not deployed at /api/analyze. This site is currently being served as a static page, so the analysis request cannot reach the Groq backend. Deploy the repository root on Vercel (Root Directory must be the repository root) and add GROQ_API_KEY there.");
       }
       throw Error("The analysis server returned an unexpected response.");
     }
