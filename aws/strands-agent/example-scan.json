@@ -1,0 +1,12 @@
+{
+  "report": {
+    "risk_score": 86,
+    "risk_level": "HIGH",
+    "category": "Bank/KYC",
+    "headline": "Several strong scam warning signals are present.",
+    "why": ["Creates urgency or pressure","Requests sensitive information","Uses an account threat","Contains a link"],
+    "explanation": "The message combines pressure, a sensitive-data request and a verification link.",
+    "action_plan": [{"step":"Do not click, pay, or share sensitive information until verified.","priority":"now"}],
+    "confidence": 91
+  }
+}
