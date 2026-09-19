@@ -1,5 +1,5 @@
 const ORIGIN = "https://sampreetialive.github.io";
-const MODEL = Deno.env.get("GROQ_MODEL") || "qwen/qwen3.6-27b";
+const MODEL = Deno.env.get("GROQ_MODEL") || "qwen/qwen3.8-27b";
 const MODEL_FALLBACKS = ["qwen/qwen3.8-27b", "qwen/qwen3.6-27b"];
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 const requests = new Map();
