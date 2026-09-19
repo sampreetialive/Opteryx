@@ -33,7 +33,7 @@ In **Supabase → Edge Functions → Secrets Management**, add:
 
 Optional:
 
-`GROQ_MODEL` = `qwen/qwen3.6-27b`
+`GROQ_MODEL` = `qwen/qwen3.8-27b`
 
 Optional:
 
@@ -76,6 +76,21 @@ npm run check
 ```
 
 The GitHub Pages workflow runs the same syntax check before deploying.
+
+## AWS First Commit — Build It
+
+The repository includes an additive local AWS open-source layer under `aws/strands-agent/` using the **Strands Agents SDK**. It consumes an existing ScamShield scan report, validates its structure and risk fields, generates a safety checklist, and produces a second-pass investigation brief. The production web path remains **GitHub Pages → Supabase Edge Function → Groq**; the Strands layer does not require a production rewrite or AWS cloud deployment.
+
+Run the local Build It demo:
+
+```bash
+cd aws/strands-agent
+npm install
+npm run check
+npm run demo
+```
+
+See [docs/FIRST-COMMIT-SUBMISSION.md](docs/FIRST-COMMIT-SUBMISSION.md) for the hackathon writeup and demo script.
 
 ## What is implemented
 
