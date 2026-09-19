@@ -51,3 +51,12 @@ GitHub Pages can host the frontend, but it cannot execute the `/api/*.js` server
 Never commit `.env.local`, API keys, or Supabase secrets to GitHub.
 
 Groq quotas/rate limits depend on the current Groq plan; an API key should be treated as a secret even if the account has a generous or effectively unlimited allowance.
+
+
+## Deployment
+
+GitHub Pages is static and cannot execute the server-side `/api/*.js` functions. The Pages workflow now validates JavaScript, copies the required assets, and keeps message/link scanning usable through a transparent local fallback when the backend is unavailable.
+
+For full AI analysis, deploy the **repository root** on Vercel and set `GROQ_API_KEY`. To make the GitHub Pages frontend call that Vercel backend, put the Vercel origin in `config.js` as `apiBaseUrl` and keep `https://sampreetialive.github.io` in `CORS_ORIGINS`.
+
+Supabase history is optional; a database failure no longer causes an otherwise successful scan to fail.
