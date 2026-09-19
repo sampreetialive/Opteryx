@@ -1,5 +1,6 @@
 const ORIGIN = "https://sampreetialive.github.io";
 const MODEL = Deno.env.get("GROQ_MODEL") || "qwen/qwen3.6-27b";
+const MODEL_FALLBACKS = ["qwen/qwen3.8-27b", "qwen/qwen3.6-27b"];
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 const requests = new Map();
 
@@ -209,7 +210,7 @@ async function groqAnalyze(message, url, image, page) {
   ];
 
   if (image) {
-    if (!/^data:image\/(png|jpeg|webp);base64,/i.test(image)) {
+    if (!/^data:image\\/(png|jpeg|webp);base64,/i.test(image)) {
       throw new Error("Invalid screenshot format.");
     }
     if (image.length > 3000000) {
@@ -221,50 +222,71 @@ async function groqAnalyze(message, url, image, page) {
     });
   }
 
-  const response = await fetch(GROQ_URL, {
-    method: "POST",
-    signal: AbortSignal.timeout(20000),
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer " + Deno.env.get("GROQ_API_KEY")
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      messages: [
-        {
-          role: "system",
-          content: "You are ScamShield, a careful scam-awareness AI. Analyze suspicious messages, links and screenshots using concrete evidence. Never request or repeat passwords, OTPs, PINs, CVVs, card numbers or private keys. Do not claim certainty. Return ONLY JSON with risk_score, risk_level (LOW|MEDIUM|HIGH), category, headline, why (array), explanation, action_plan (array of {step,priority}), and confidence."
-        },
-        { role: "user", content: content }
-      ],
-      temperature: 0.2,
-      max_completion_tokens: 1400,
-      response_format: { type: "json_object" }
-    })
+  const candidates = [MODEL].concat(MODEL_FALLBACKS).filter(function (model, index, list) {
+    return model && list.indexOf(model) === index;
   });
 
-  const data = await response.json().catch(function () { return {}; });
+  let lastError = "Groq request failed.";
 
-  if (!response.ok) {
-    throw new Error(
-      data && data.error && data.error.message
-        ? data.error.message
-        : "Groq request failed."
-    );
+  for (const model of candidates) {
+    const response = await fetch(GROQ_URL, {
+      method: "POST",
+      signal: AbortSignal.timeout(20000),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + Deno.env.get("GROQ_API_KEY")
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          {
+            role: "system",
+            content: "You are ScamShield, a careful scam-awareness AI. Analyze suspicious messages, links and screenshots using concrete evidence. Never request or repeat passwords, OTPs, PINs, CVVs, card numbers or private keys. Do not claim certainty. Return ONLY JSON with risk_score, risk_level (LOW|MEDIUM|HIGH), category, headline, why (array), explanation, action_plan (array of {step,priority}), and confidence."
+          },
+          { role: "user", content: content }
+        ],
+        temperature: 0.2,
+        max_completion_tokens: 1400,
+        response_format: { type: "json_object" }
+      })
+    });
+
+    const data = await response.json().catch(function () { return {}; });
+
+    if (!response.ok) {
+      lastError =
+        data && data.error && data.error.message
+          ? data.error.message
+          : "Groq request failed.";
+
+      if (response.status !== 403 && response.status !== 404) {
+        throw new Error(lastError);
+      }
+
+      continue;
+    }
+
+    const raw =
+      data &&
+      data.choices &&
+      data.choices[0] &&
+      data.choices[0].message
+        ? data.choices[0].message.content
+        : "";
+
+    if (!raw) {
+      lastError = "Groq returned no analysis.";
+      continue;
+    }
+
+    return normalize(JSON.parse(cleanJson(raw)));
   }
 
-  const raw =
-    data &&
-    data.choices &&
-    data.choices[0] &&
-    data.choices[0].message
-      ? data.choices[0].message.content
-      : "";
-
-  if (!raw) throw new Error("Groq returned no analysis.");
-  return normalize(JSON.parse(cleanJson(raw)));
+  throw new Error(
+    lastError +
+    " ScamShield tried both supported Qwen vision models. Check Groq model permissions for the organization/project."
+  );
 }
-
 Deno.serve(async function (req) {
   const origin = req.headers.get("origin") || "";
 
