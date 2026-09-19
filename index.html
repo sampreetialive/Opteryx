@@ -41,8 +41,8 @@
     <div class="analyzer card">
       <div class="tabs"><button class="tab active" data-mode="message">💬 Message</button><button class="tab" data-mode="link">🔗 Link</button><button class="tab" data-mode="screenshot">🖼 Screenshot</button></div>
       <div id="messagePane" class="pane"><textarea id="messageInput" maxlength="12000" placeholder="Paste a WhatsApp, SMS, email, job offer, bank notice or payment request…"></textarea><div class="input-meta"><span id="charCount">0 / 12,000</span><span>Tip: include sender + full message</span></div></div>
-      <div id="linkPane" class="pane hidden"><div class="url-input"><span>https://</span><input id="urlInput" placeholder="example.com/suspicious-offer"></div><div class="hint">🔎 URL mode will be connected to live reputation checks in the AWS backend.</div></div>
-      <div id="screenshotPane" class="pane hidden"><div class="dropzone" id="dropzone"><div class="upload-icon">↥</div><b>Drop a screenshot here</b><p>PNG, JPG or WebP · OCR analysis coming with AWS Textract</p><label class="upload-btn">Choose image<input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp"></label><small id="fileName">No image selected</small></div><textarea id="ocrInput" maxlength="12000" placeholder="Mandatory prompt..."></textarea></div>
+      <div id="linkPane" class="pane hidden"><div class="url-input"><span>https://</span><input id="urlInput" placeholder="example.com/suspicious-offer"></div><div class="hint">🔎 The AI backend can inspect the public page when the app is deployed with its backend.</div></div>
+      <div id="screenshotPane" class="pane hidden"><div class="dropzone" id="dropzone"><div class="upload-icon">↥</div><b>Drop a screenshot here</b><p>PNG, JPG or WebP · multimodal AI analysis when the backend is connected</p><label class="upload-btn">Choose image<input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp"></label><small id="fileName">No image selected</small></div><textarea id="ocrInput" maxlength="12000" placeholder="Mandatory prompt..."></textarea></div>
       <div class="examples"><span>Example:</span><button data-example="bank">Fake bank SMS</button><button data-example="job">Fake job offer</button><button data-example="delivery">Delivery fee</button></div>
       <button id="analyzeBtn" class="primary-btn analyze"><span>Analyze with ScamShield</span><b>→</b></button><div id="errorBox" class="error hidden"></div>
     </div>
@@ -57,7 +57,7 @@
 <section id="resultSection" class="section shell hidden"><div class="section-heading"><div><div class="kicker">02 / REPORT</div><h2>Your security report.</h2></div><button id="newScanBtn" class="secondary-btn">＋ New scan</button></div><div id="resultCard" class="report card"></div></section>
 
 <section id="intelligence" class="section shell">
-  <div class="section-heading"><div><div class="kicker">03 / SCAM INTELLIGENCE</div><h2>See the story behind a warning.</h2><p>Community reports add context without pretending that a report count is absolute proof.</p></div></div>
+  <div class="section-heading"><div><div class="kicker">03 / SCAM INTELLIGENCE DEMO</div><h2>See the story behind a warning.</h2><p>Illustrative prototype data shows how community signals could appear without treating report counts as proof.</p></div></div>
   <div class="intel-grid">
     <article class="intel-card card"><div class="intel-top"><span class="danger-dot"></span><span>COMMUNITY SIGNAL</span></div><strong>1,284</strong><b>reports associated with this indicator</b><div class="mini-bars"><i style="height:28%"></i><i style="height:38%"></i><i style="height:45%"></i><i style="height:42%"></i><i style="height:58%"></i><i style="height:74%"></i><i style="height:91%"></i></div><small>Activity increased recently</small></article>
     <article class="intel-card card"><div class="intel-top"><span class="blue-dot"></span><span>REPORT HISTORY</span></div><div class="timeline"><div><b>Mar 14</b><span>First report</span></div><div><b>Jun 09</b><span>306 total reports</span></div><div><b>Aug 17</b><span>490 total reports</span></div><div><b>Today</b><span>1,284 total reports</span></div></div></article>
@@ -85,5 +85,6 @@
 </main>
 
 <footer><div><b>ScamShield</b><span>AI-powered scam awareness.</span></div><div><a href="#plans">Plans</a><a href="#learn">Learn</a><a href="#emergency">Emergency help</a><a href="https://www.cybercrime.gov.in/" target="_blank" rel="noopener">Official cybercrime portal</a></div><small>AI can be wrong. Verify independently.</small></footer>
+<script src="./config.js"></script>
 <script src="./app.js"></script>
 </body></html>
