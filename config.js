@@ -1,6 +1,5 @@
 // Supabase Edge Function URL.
-// After deployment, paste:
-// https://YOUR_PROJECT_REF.supabase.co/functions/v1/scamshield
+// Public endpoint only; the Groq API key stays inside Supabase Secrets.
 window.SCAMSHIELD_CONFIG = {
-  supabaseFunctionUrl: ""
+  supabaseFunctionUrl: "https://usywgneekvuzgeputmqa.supabase.co/functions/v1/scamshield"
 };
