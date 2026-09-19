@@ -1,3 +1,2 @@
 [functions.scamshield]
 verify_jwt = false
-entrypoint = './functions/scamshield/index.js'
