@@ -5,6 +5,6 @@
   "type": "module",
   "description": "ScamShield scam-awareness web app",
   "scripts": {
-    "check": "node --check app.js"
+    "check": "node --check app.js && node --check aws/strands-agent/src/agent.ts && node --check aws/strands-agent/src/tools.ts"
   }
 }
