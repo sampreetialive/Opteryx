@@ -1,0 +1,13 @@
+{
+  "name": "scamshield",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "ScamShield scam-awareness web app",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "check": "node --check app.js && node --check api/analyze.js && node --check api/health.js && node --check api/history.js"
+  }
+}
