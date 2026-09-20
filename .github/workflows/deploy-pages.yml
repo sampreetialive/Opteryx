@@ -42,7 +42,7 @@ jobs:
           rm -rf _site
           mkdir -p _site/assets
           cp index.html _site/index.html
-          cp app.js _site/app.js
+          cp scanner.js _site/scanner.js
           cp auth.js _site/auth.js
           cp styles.css _site/styles.css
           cp config.js _site/config.js
