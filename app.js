@@ -1,140 +1,18 @@
 const $=s=>document.querySelector(s),$=s=>[...document.querySelectorAll(s)];
 
-const AUTH_CONFIG=window.SCAMSHIELD_CONFIG||{};
-let authClient=null;
-let authMode="signup";
-
-function authNotice(message,type="info"){
-  const box=q("#authMessage");
-  if(!box) return;
-  box.textContent=message;
-  box.className="auth-message "+type;
-  box.classList.remove("hidden");
-}
-function setAuthMode(next){
-  authMode=next;
-  const signup=next==="signup";
-  q("#signupTab").classList.toggle("active",signup);
-  q("#loginTab").classList.toggle("active",!signup);
-  q("#nameField").classList.toggle("hidden",!signup);
-  q("#authTitle").textContent=signup?"Create your account":"Welcome back";
-  q("#authSubtitle").textContent=signup?"Sign up to access the ScamShield security console.":"Sign in to continue to your ScamShield security console.";
-  q("#authSubmit span").textContent=signup?"Create account":"Sign in";
-  q("#authPassword").setAttribute("autocomplete",signup?"new-password":"current-password");
-  q("#authMessage").classList.add("hidden");
-}
-function unlockApp(user){
-  const signedIn=Boolean(user);
-  q("#authGate").classList.toggle("hidden",signedIn);
-  q("#appShell").classList.toggle("hidden",!signedIn);
-  if(signedIn){
-    const email=String(user.email||"");
-    const name=String(user.user_metadata?.display_name||user.user_metadata?.name||"").trim();
-    q("#userBadge").textContent=name?name+" · "+email:email;
-  }else{
-    q("#userBadge").textContent="";
-  }
-}
-async function initAuth(){
-  if(!window.supabase){
-    authNotice("Supabase Auth could not load. Refresh the page and try again.","error");
-    return;
-  }
-  const key=String(AUTH_CONFIG.supabaseAnonKey||"").trim();
-  const url=String(AUTH_CONFIG.supabaseUrl||"").trim();
-  if(!url||!key||key.includes("YOUR_SUPABASE_")){
-    authNotice("Supabase Auth is not configured yet. Add the project's publishable/anon key to config.js.","error");
-    return;
-  }
-  if(key.includes("service_role")||key.startsWith("sb_secret_")){
-    authNotice("That is a Supabase secret key. Use the publishable/anon key in config.js instead.","error");
-    return;
-  }
-  try{
-    authClient=window.supabase.createClient(url,key,{
-      auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
-    });
-    const {data,error}=await authClient.auth.getSession();
-    if(error) throw error;
-    unlockApp(data.session?.user||null);
-    authClient.auth.onAuthStateChange((_event,session)=>{
-      unlockApp(session?.user||null);
-    });
-  }catch(error){
-    authNotice(error.message||"Supabase Auth could not be initialized.","error");
-  }
-}
-q("#signupTab").onclick=()=>setAuthMode("signup");
-q("#loginTab").onclick=()=>setAuthMode("login");
-q("#togglePassword").onclick=()=>{
-  const input=q("#authPassword");
-  const showing=input.type==="text";
-  input.type=showing?"password":"text";
-  q("#togglePassword").textContent=showing?"Show":"Hide";
-  q("#togglePassword").setAttribute("aria-label",showing?"Show password":"Hide password");
-};
-q("#authForm").onsubmit=async event=>{
-  event.preventDefault();
-  if(!authClient){
-    authNotice("Authentication is not connected yet. Add the Supabase publishable/anon key to config.js and refresh.","error");
-    return;
-  }
-  const email=q("#authEmail").value.trim();
-  const password=q("#authPassword").value;
-  const name=q("#authName").value.trim();
-  const submit=q("#authSubmit");
-  submit.disabled=true;
-  submit.querySelector("span").textContent=authMode==="signup"?"Creating account…":"Signing in…";
-  q("#authMessage").classList.add("hidden");
-  try{
-    if(authMode==="signup"){
-      const {data,error}=await authClient.auth.signUp({
-        email,
-        password,
-        options:{data:{display_name:name}}
-      });
-      if(error) throw error;
-      if(data.session){
-        authNotice("Account created. You're signed in.","success");
-        return;
-      }
-      authNotice("Account created. Check your email to confirm the account, then use Sign in.","success");
-    }else{
-      const {data,error}=await authClient.auth.signInWithPassword({email,password});
-      if(error) throw error;
-      if(data.user) unlockApp(data.user);
-    }
-  }catch(error){
-    authNotice(error.message||"Authentication failed. Please try again.","error");
-  }finally{
-    submit.disabled=false;
-    submit.querySelector("span").textContent=authMode==="signup"?"Create account":"Sign in";
-  }
-};
-q("#logoutBtn").onclick=async()=>{
-  if(!authClient) return;
-  const {error}=await authClient.auth.signOut();
-  if(error){
-    authNotice(error.message||"Could not sign out.","error");
-  }else{
-    setAuthMode("login");
-    q("#authEmail").focus();
-  }
-};
-
 
 const examples={bank:"URGENT: Your bank KYC has expired. Your account will be BLOCKED today. Verify now at https://secure-kyc-update.example/login and enter your card details and OTP to avoid suspension.",job:"Congratulations! You have been selected for a remote internship. To confirm your seat, pay a refundable registration fee of ₹2,999 within 30 minutes. Send the payment screenshot and Aadhaar number to our HR WhatsApp. Limited seats!",delivery:"Your parcel could not be delivered because of an unpaid ₹49 customs fee. Pay immediately using the link below or your package will be returned: https://delivery-fee.example/pay"};
-function setTheme(t){document.documentElement.classList.toggle("light",t==="light");localStorage.setItem("scamshield-theme",t);const glyph=t==="light"?"☾":"☼";if(q("#themeBtn"))q("#themeBtn").textContent=glyph;if(q("#authThemeBtn"))q("#authThemeBtn").textContent=glyph}setTheme(localStorage.getItem("scamshield-theme")||"dark");q("#themeBtn").onclick=()=>setTheme(document.documentElement.classList.contains("light")?"dark":"light");q("#authThemeBtn").onclick=()=>setTheme(document.documentElement.classList.contains("light")?"dark":"light");
-let mode="message";qa(".tab").forEach(b=>b.onclick=()=>{mode=b.dataset.mode;qa(".tab").forEach(x=>x.classList.toggle("active",x===b));["messagePane","linkPane","screenshotPane"].forEach(id=>q("#"+id).classList.add("hidden"));q("#"+mode+"Pane").classList.remove("hidden")});
-q("#messageInput").oninput=e=>q("#charCount").textContent=e.target.value.length.toLocaleString()+" / 12,000";
-qa(".examples button").forEach(b=>b.onclick=()=>{q("#messageInput").value=examples[b.dataset.example];q("#messageInput").dispatchEvent(new Event("input"));mode="message";qa(".tab").forEach(x=>x.classList.toggle("active",x.dataset.mode==="message"));["messagePane","linkPane","screenshotPane"].forEach(id=>q("#"+id).classList.add("hidden"));q("#messagePane").classList.remove("hidden");q("#messageInput").focus()});
+function setTheme(t){document.documentElement.classList.toggle("light",t==="light");localStorage.setItem("scamshield-theme",t);document.querySelector("#themeBtn").textContent=t==="light"?"☾":"☼"}setTheme(localStorage.getItem("scamshield-theme")||"dark");document.querySelector("#themeBtn").onclick=()=>setTheme(document.documentElement.classList.contains("light")?"dark":"light");
+let mode="message";$(".tab").forEach(b=>b.onclick=()=>{mode=b.dataset.mode;$(".tab").forEach(x=>x.classList.toggle("active",x===b));["messagePane","linkPane","screenshotPane"].forEach(id=>$("#"+id).classList.add("hidden"));$("#"+mode+"Pane").classList.remove("hidden")});
+$("#messageInput").oninput=e=>$("#charCount").textContent=e.target.value.length.toLocaleString()+" / 12,000";
+$(".examples button").forEach(b=>b.onclick=()=>{$("#messageInput").value=examples[b.dataset.example];$("#messageInput").dispatchEvent(new Event("input"));mode="message";$(".tab").forEach(x=>x.classList.toggle("active",x.dataset.mode==="message"));["messagePane","linkPane","screenshotPane"].forEach(id=>$("#"+id).classList.add("hidden"));$("#messagePane").classList.remove("hidden");$("#messageInput").focus()});
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
 function localHeuristic(message,url){const text=(message+" "+url).toLowerCase();const hits=[];if(/urgent|immediately|within \d+|blocked|limited|act now/.test(text))hits.push("Urgency or pressure language");if(/otp|password|pin|cvv|card details|aadhaar/.test(text))hits.push("Sensitive credential or identity request");if(/pay|payment|fee|₹|refund|registration fee/.test(text))hits.push("Payment request or financial pressure");if(/http|login|verify|kyc|account/.test(text))hits.push("Link, login or account-verification signal");if(/bank|hr|delivery|customs|support/.test(text))hits.push("Possible organization impersonation");let score=Math.min(96,Math.max(12,25+hits.length*14+(text.length>180?8:0)));let level=score>=70?"HIGH":score>=45?"MEDIUM":"LOW";return{risk_score:score,risk_level:level,confidence:Math.min(94,62+hits.length*7),category:hits.includes("Payment request or financial pressure")?"Payment / phishing":"Suspicious message",headline:level==="HIGH"?"Multiple high-risk signals detected":level==="MEDIUM"?"Several warning signs need attention":"No strong scam pattern detected",explanation:"This demo report is based on visible signals in the content. The AI backend adds model reasoning, URL intelligence and community reputation.",why:hits.length?hits:["No strong warning signal was detected in this demo scan."],action_plan:[{priority:"PAUSE",step:"Do not click links or send money until you verify the sender independently."},{priority:"VERIFY",step:"Open the organization’s official app or website yourself and use its published contact details."},{priority:"REPORT",step:"If you believe this is fraud, preserve evidence and use the official reporting channel."}]}}
 function backendUrl(action){
   const base=String(window.SCAMSHIELD_CONFIG?.supabaseFunctionUrl||"").trim().replace(/\/+$/,"");
   return base ? base+"?action="+encodeURIComponent(action) : "";
 }
-function render(a,community=true){const score=Number(a.risk_score)||0,col=a.risk_level==="HIGH"?"var(--red)":a.risk_level==="LOW"?"var(--green)":"var(--yellow)";q("#resultCard").innerHTML=`<div class="report-main"><div class="risk-ring" style="--score:${score};--risk:${col}"><div class="risk-inner"><div class="risk-score">${score}</div><div class="risk-label">risk score</div></div></div><div><div class="chips"><span class="chip" style="color:${col}">${esc(a.risk_level)} RISK</span><span class="chip">${esc(a.category)}</span><span class="chip">${Number(a.confidence)||0}% confidence</span></div><div class="risk-title">${esc(a.headline)}</div><p style="color:var(--muted);font-size:12px;line-height:1.6">${esc(a.explanation)}</p></div></div><div class="report-block"><h4>WHY IT LOOKS SUSPICIOUS</h4><div class="why-grid">${(a.why||[]).map(x=>`<div class="why-item"><b>⚠ SIGNAL</b>${esc(x)}</div>`).join("")}</div></div><div class="report-block"><h4>SAFE ACTION PLAN</h4><div class="action-grid">${(a.action_plan||[]).map((x,i)=>`<div class="action-item"><b>${i+1}. ${esc(x.priority)}</b>${esc(x.step)}</div>`).join("")}</div></div>${community?'<div class="community-box"><strong>🚩 Community signal</strong><p>This demo shows how historical reports will appear. Production values will come from the ScamShield report database, not hardcoded counts.</p><b>View report history →</b></div>':""}<p style="color:var(--muted);font-size:9px;margin-top:17px">AI-assisted analysis is a warning signal, not proof. Verify independently.</p>`;q("#resultSection").classList.remove("hidden");q("#resultSection").scrollIntoView({behavior:"smooth"})}
+function render(a,community=true){const score=Number(a.risk_score)||0,col=a.risk_level==="HIGH"?"var(--red)":a.risk_level==="LOW"?"var(--green)":"var(--yellow)";$("#resultCard").innerHTML=`<div class="report-main"><div class="risk-ring" style="--score:${score};--risk:${col}"><div class="risk-inner"><div class="risk-score">${score}</div><div class="risk-label">risk score</div></div></div><div><div class="chips"><span class="chip" style="color:${col}">${esc(a.risk_level)} RISK</span><span class="chip">${esc(a.category)}</span><span class="chip">${Number(a.confidence)||0}% confidence</span></div><div class="risk-title">${esc(a.headline)}</div><p style="color:var(--muted);font-size:12px;line-height:1.6">${esc(a.explanation)}</p></div></div><div class="report-block"><h4>WHY IT LOOKS SUSPICIOUS</h4><div class="why-grid">${(a.why||[]).map(x=>`<div class="why-item"><b>⚠ SIGNAL</b>${esc(x)}</div>`).join("")}</div></div><div class="report-block"><h4>SAFE ACTION PLAN</h4><div class="action-grid">${(a.action_plan||[]).map((x,i)=>`<div class="action-item"><b>${i+1}. ${esc(x.priority)}</b>${esc(x.step)}</div>`).join("")}</div></div>${community?'<div class="community-box"><strong>🚩 Community signal</strong><p>This demo shows how historical reports will appear. Production values will come from the ScamShield report database, not hardcoded counts.</p><b>View report history →</b></div>':""}<p style="color:var(--muted);font-size:9px;margin-top:17px">AI-assisted analysis is a warning signal, not proof. Verify independently.</p>`;$("#resultSection").classList.remove("hidden");$("#resultSection").scrollIntoView({behavior:"smooth"})}
 function readImage(file){
   return new Promise((resolve,reject)=>{
     if(!file) return resolve(null);
@@ -162,18 +40,18 @@ function readImage(file){
     reader.readAsDataURL(file);
   });
 }
-q("#fileInput").onchange=e=>{
+$("#fileInput").onchange=e=>{
   const f=e.target.files[0];
-  q("#fileName").textContent=f?f.name+" · "+Math.round(f.size/1024)+" KB":"No image selected";
+  $("#fileName").textContent=f?f.name+" · "+Math.round(f.size/1024)+" KB":"No image selected";
 };
 async function analyze(){
-  const btn=q("#analyzeBtn"),err=q("#errorBox");
+  const btn=$("#analyzeBtn"),err=$("#errorBox");
   err.classList.add("hidden");
   let message="",url="",image=null;
-  if(mode==="message") message=q("#messageInput").value.trim();
-  if(mode==="link") url=q("#urlInput").value.trim();
+  if(mode==="message") message=$("#messageInput").value.trim();
+  if(mode==="link") url=$("#urlInput").value.trim();
   if(mode==="screenshot"){
-    try{ image=await readImage(q("#fileInput").files[0]); }
+    try{ image=await readImage($("#fileInput").files[0]); }
     catch(e){ err.textContent=e.message;err.classList.remove("hidden");return; }
   }
   if(!message&&!url&&!image){
@@ -216,6 +94,4 @@ async function analyze(){
     btn.querySelector("span").textContent="Analyze with ScamShield";
   }
 }
-q("#analyzeBtn").onclick=analyze;q("#newScanBtn").onclick=()=>{q("#resultSection").classList.add("hidden");location.hash="scanner"};
-setAuthMode("signup");
-initAuth();
+$("#analyzeBtn").onclick=analyze;$("#newScanBtn").onclick=()=>{$("#resultSection").classList.add("hidden");location.hash="scanner"};
