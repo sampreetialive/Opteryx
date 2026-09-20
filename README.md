@@ -130,3 +130,8 @@ See [docs/FIRST-COMMIT-SUBMISSION.md](docs/FIRST-COMMIT-SUBMISSION.md) for the h
 
 
 The latest web build includes the authentication gate and hardened analyzer runtime; run `npm run check` before deployment.
+
+
+### Current browser entrypoint
+
+The deployed scanner is loaded from `scanner.js`; `auth.js` handles Supabase email authentication. The Pages workflow copies both files into the published site.
