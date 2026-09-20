@@ -1,6 +1,7 @@
 # 🛡️ ScamShield
 
 ScamShield is a scam-awareness web app for suspicious messages, links and screenshots.
+
 Link to website: https://sampreetialive.github.io/Opteryx/
 
 ## Simple architecture
