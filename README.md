@@ -79,6 +79,19 @@ npm run check
 
 The GitHub Pages workflow runs the same syntax check before deploying.
 
+## User authentication
+
+ScamShield now opens on a dedicated authentication landing page. Users must create an account or sign in before the scanner and the rest of the app are revealed. Authentication uses Supabase Auth with email and password, and the signed-in session is persisted in the browser.
+
+One-time Supabase setup:
+
+1. In **Supabase → Project Settings → API**, copy the project's **publishable key** (or legacy `anon` key).
+2. Put that public key in `config.js` as `supabaseAnonKey`. Never use a `service_role` or `sb_secret_...` key in the browser.
+3. In **Supabase → Authentication → Providers**, make sure **Email** is enabled. If email confirmation is enabled, a new user must confirm their email before signing in; otherwise a new account can sign in immediately.
+4. The ScamShield Edge Function now requires a valid Supabase user JWT, so unauthenticated users cannot call the analysis endpoint directly.
+
+The app uses the browser-safe publishable/anon key only for Supabase Auth. Groq remains server-side in Supabase Secrets.
+
 ## AWS First Commit — Build It
 
 The repository includes an additive local AWS open-source layer under `aws/strands-agent/` using the **Strands Agents SDK**. It consumes an existing ScamShield scan report, validates its structure and risk fields, generates a safety checklist, and produces a second-pass investigation brief. The production web path remains **GitHub Pages → Supabase Edge Function → Groq**; the Strands layer does not require a production rewrite or AWS cloud deployment.
