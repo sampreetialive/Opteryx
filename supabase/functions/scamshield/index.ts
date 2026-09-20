@@ -12,7 +12,7 @@ function cors(req) {
     .filter(Boolean);
 
   const headers = {
-    "Access-Control-Allow-Headers": "content-type",
+    "Access-Control-Allow-Headers": "content-type, authorization",
     "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
     "Vary": "Origin"
   };
