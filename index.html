@@ -9,10 +9,57 @@
 </head>
 <body>
 <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div><div class="noise"></div>
+<section id="authGate" class="auth-gate">
+  <div class="auth-shell shell">
+    <div class="auth-brand">
+      <a class="brand" href="./"><span class="brand-mark"><img src="./assets/scamshield-icon.svg" alt="" aria-hidden="true"></span><span>Scam<span>Shield</span></span></a>
+      <button id="authThemeBtn" class="icon-btn" aria-label="Toggle theme">☼</button>
+    </div>
+    <div class="auth-grid">
+      <div class="auth-pitch">
+        <div class="eyebrow"><span>✦</span> AI-powered scam intelligence</div>
+        <h1>Check before<br><span>you click.</span></h1>
+        <p>Create a free ScamShield account to unlock the scanner, AI reports, screenshot analysis and safety guidance.</p>
+        <div class="auth-points">
+          <div><span>✓</span><section><b>Explainable AI reports</b><small>See the warning signals behind a risk score.</small></section></div>
+          <div><span>✓</span><section><b>Message, link & screenshot checks</b><small>One account for every ScamShield scan.</small></section></div>
+          <div><span>✓</span><section><b>Safer next actions</b><small>Turn a suspicious moment into a practical plan.</small></section></div>
+        </div>
+      </div>
+      <div class="auth-card card">
+        <div class="auth-kicker">WELCOME TO SCAMSHIELD</div>
+        <h2 id="authTitle">Create your account</h2>
+        <p id="authSubtitle">Sign up to access the ScamShield security console.</p>
+        <div class="auth-switch" role="tablist" aria-label="Authentication mode">
+          <button id="signupTab" class="active" type="button">Sign up</button>
+          <button id="loginTab" type="button">Sign in</button>
+        </div>
+        <form id="authForm">
+          <div id="nameField" class="auth-field">
+            <label for="authName">Name</label>
+            <input id="authName" type="text" autocomplete="name" maxlength="80" placeholder="Your name">
+          </div>
+          <div class="auth-field">
+            <label for="authEmail">Email</label>
+            <input id="authEmail" type="email" autocomplete="email" required placeholder="you@example.com">
+          </div>
+          <div class="auth-field">
+            <label for="authPassword">Password</label>
+            <div class="password-wrap"><input id="authPassword" type="password" autocomplete="new-password" minlength="6" required placeholder="At least 6 characters"><button id="togglePassword" type="button" aria-label="Show password">Show</button></div>
+          </div>
+          <button id="authSubmit" class="primary-btn auth-submit" type="submit"><span>Create account</span><b>→</b></button>
+        </form>
+        <div id="authMessage" class="auth-message hidden" role="status"></div>
+        <p class="auth-footnote">By continuing, you agree to use ScamShield for scam awareness and verification—not as a guarantee of fraud.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<div id="appShell" class="app-shell hidden">
 <header class="topbar">
   <a class="brand" href="./"><span class="brand-mark"><img src="./assets/scamshield-icon.svg" alt="" aria-hidden="true"></span><span>Scam<span>Shield</span></span></a>
   <nav class="navlinks"><a href="#scanner">Scan</a><a href="#intelligence">Intelligence</a><a href="#plans">Plans</a><a href="#learn">Learn</a></nav>
-  <div class="top-actions"><a class="emergency-mini" href="#emergency">🚨 Emergency help</a><button id="themeBtn" class="icon-btn" aria-label="Toggle theme">☼</button></div>
+  <div class="top-actions"><a class="emergency-mini" href="#emergency">🚨 Emergency help</a><span id="userBadge" class="user-badge" title="Signed-in account"></span><button id="logoutBtn" class="logout-btn" type="button">Log out</button><button id="themeBtn" class="icon-btn" aria-label="Toggle theme">☼</button></div>
 </header>
 
 <main>
@@ -85,6 +132,8 @@
 </main>
 
 <footer><div><b>ScamShield</b><span>AI-powered scam awareness.</span></div><div><a href="#plans">Plans</a><a href="#learn">Learn</a><a href="#emergency">Emergency help</a><a href="https://www.cybercrime.gov.in/" target="_blank" rel="noopener">Official cybercrime portal</a></div><small>AI can be wrong. Verify independently.</small></footer>
+</div>
 <script src="./config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./app.js"></script>
 </body></html>
