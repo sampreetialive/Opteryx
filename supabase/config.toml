@@ -1,2 +1,2 @@
 [functions.scamshield]
-verify_jwt = true
+verify_jwt = false
