@@ -2,7 +2,7 @@ const $=s=>document.querySelector(s),$=s=>[...document.querySelectorAll(s)];
 
 
 const examples={bank:"URGENT: Your bank KYC has expired. Your account will be BLOCKED today. Verify now at https://secure-kyc-update.example/login and enter your card details and OTP to avoid suspension.",job:"Congratulations! You have been selected for a remote internship. To confirm your seat, pay a refundable registration fee of ₹2,999 within 30 minutes. Send the payment screenshot and Aadhaar number to our HR WhatsApp. Limited seats!",delivery:"Your parcel could not be delivered because of an unpaid ₹49 customs fee. Pay immediately using the link below or your package will be returned: https://delivery-fee.example/pay"};
-function setTheme(t){document.documentElement.classList.toggle("light",t==="light");localStorage.setItem("scamshield-theme",t);document.querySelector("#themeBtn").textContent=t==="light"?"☾":"☼"}setTheme(localStorage.getItem("scamshield-theme")||"dark");document.querySelector("#themeBtn").onclick=()=>setTheme(document.documentElement.classList.contains("light")?"dark":"light");
+function setTheme(t){document.documentElement.classList.toggle("light",t==="light");localStorage.setItem("scamshield-theme",t);const themeBtn=document.querySelector("#themeBtn");if(themeBtn)themeBtn.textContent=t==="light"?"☾":"☼"}setTheme(localStorage.getItem("scamshield-theme")||"dark");document.querySelector("#themeBtn").onclick=()=>setTheme(document.documentElement.classList.contains("light")?"dark":"light");
 let mode="message";$(".tab").forEach(b=>b.onclick=()=>{mode=b.dataset.mode;$(".tab").forEach(x=>x.classList.toggle("active",x===b));["messagePane","linkPane","screenshotPane"].forEach(id=>$("#"+id).classList.add("hidden"));$("#"+mode+"Pane").classList.remove("hidden")});
 $("#messageInput").oninput=e=>$("#charCount").textContent=e.target.value.length.toLocaleString()+" / 12,000";
 $(".examples button").forEach(b=>b.onclick=()=>{$("#messageInput").value=examples[b.dataset.example];$("#messageInput").dispatchEvent(new Event("input"));mode="message";$(".tab").forEach(x=>x.classList.toggle("active",x.dataset.mode==="message"));["messagePane","linkPane","screenshotPane"].forEach(id=>$("#"+id).classList.add("hidden"));$("#messagePane").classList.remove("hidden");$("#messageInput").focus()});
@@ -46,6 +46,7 @@ $("#fileInput").onchange=e=>{
 };
 async function analyze(){
   const btn=$("#analyzeBtn"),err=$("#errorBox");
+  if(!btn||!err)return;
   err.classList.add("hidden");
   let message="",url="",image=null;
   if(mode==="message") message=$("#messageInput").value.trim();
