@@ -4,5 +4,5 @@ window.SCAMSHIELD_CONFIG = {
   supabaseUrl: "https://usywgneekvuzgeputmqa.supabase.co",
   // Add the Supabase publishable key (legacy anon key is also supported) from:
   // Supabase Dashboard → Project Settings → API.
-  supabaseAnonKey: "YOUR_SUPABASE_PUBLISHABLE_KEY"
+  supabaseAnonKey: "sb_publishable_2UpI9QtT6_l_ESXfX1m_pg__zwGDuuR"
 };
