@@ -1,6 +1,130 @@
-const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const $=s=>document.querySelector(s),$=s=>[...document.querySelectorAll(s)];
+
+const AUTH_CONFIG=window.SCAMSHIELD_CONFIG||{};
+let authClient=null;
+let authMode="signup";
+
+function authNotice(message,type="info"){
+  const box=$("#authMessage");
+  if(!box) return;
+  box.textContent=message;
+  box.className="auth-message "+type;
+  box.classList.remove("hidden");
+}
+function setAuthMode(next){
+  authMode=next;
+  const signup=next==="signup";
+  $("#signupTab").classList.toggle("active",signup);
+  $("#loginTab").classList.toggle("active",!signup);
+  $("#nameField").classList.toggle("hidden",!signup);
+  $("#authTitle").textContent=signup?"Create your account":"Welcome back";
+  $("#authSubtitle").textContent=signup?"Sign up to access the ScamShield security console.":"Sign in to continue to your ScamShield security console.";
+  $("#authSubmit span").textContent=signup?"Create account":"Sign in";
+  $("#authPassword").setAttribute("autocomplete",signup?"new-password":"current-password");
+  $("#authMessage").classList.add("hidden");
+}
+function unlockApp(user){
+  const signedIn=Boolean(user);
+  $("#authGate").classList.toggle("hidden",signedIn);
+  $("#appShell").classList.toggle("hidden",!signedIn);
+  if(signedIn){
+    const email=String(user.email||"");
+    const name=String(user.user_metadata?.display_name||user.user_metadata?.name||"").trim();
+    $("#userBadge").textContent=name?name+" · "+email:email;
+  }else{
+    $("#userBadge").textContent="";
+  }
+}
+async function initAuth(){
+  if(!window.supabase){
+    authNotice("Supabase Auth could not load. Refresh the page and try again.","error");
+    return;
+  }
+  const key=String(AUTH_CONFIG.supabaseAnonKey||"").trim();
+  const url=String(AUTH_CONFIG.supabaseUrl||"").trim();
+  if(!url||!key||key.includes("YOUR_SUPABASE_")){
+    authNotice("Supabase Auth is not configured yet. Add the project's publishable/anon key to config.js.","error");
+    return;
+  }
+  if(key.includes("service_role")||key.startsWith("sb_secret_")){
+    authNotice("That is a Supabase secret key. Use the publishable/anon key in config.js instead.","error");
+    return;
+  }
+  try{
+    authClient=window.supabase.createClient(url,key,{
+      auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
+    });
+    const {data,error}=await authClient.auth.getSession();
+    if(error) throw error;
+    unlockApp(data.session?.user||null);
+    authClient.auth.onAuthStateChange((_event,session)=>{
+      unlockApp(session?.user||null);
+    });
+  }catch(error){
+    authNotice(error.message||"Supabase Auth could not be initialized.","error");
+  }
+}
+$("#signupTab").onclick=()=>setAuthMode("signup");
+$("#loginTab").onclick=()=>setAuthMode("login");
+$("#togglePassword").onclick=()=>{
+  const input=$("#authPassword");
+  const showing=input.type==="text";
+  input.type=showing?"password":"text";
+  $("#togglePassword").textContent=showing?"Show":"Hide";
+  $("#togglePassword").setAttribute("aria-label",showing?"Show password":"Hide password");
+};
+$("#authForm").onsubmit=async event=>{
+  event.preventDefault();
+  if(!authClient){
+    authNotice("Authentication is not connected yet. Add the Supabase publishable/anon key to config.js and refresh.","error");
+    return;
+  }
+  const email=$("#authEmail").value.trim();
+  const password=$("#authPassword").value;
+  const name=$("#authName").value.trim();
+  const submit=$("#authSubmit");
+  submit.disabled=true;
+  submit.querySelector("span").textContent=authMode==="signup"?"Creating account…":"Signing in…";
+  $("#authMessage").classList.add("hidden");
+  try{
+    if(authMode==="signup"){
+      const {data,error}=await authClient.auth.signUp({
+        email,
+        password,
+        options:{data:{display_name:name}}
+      });
+      if(error) throw error;
+      if(data.session){
+        authNotice("Account created. You're signed in.","success");
+        return;
+      }
+      authNotice("Account created. Check your email to confirm the account, then use Sign in.","success");
+    }else{
+      const {data,error}=await authClient.auth.signInWithPassword({email,password});
+      if(error) throw error;
+      if(data.user) unlockApp(data.user);
+    }
+  }catch(error){
+    authNotice(error.message||"Authentication failed. Please try again.","error");
+  }finally{
+    submit.disabled=false;
+    submit.querySelector("span").textContent=authMode==="signup"?"Create account":"Sign in";
+  }
+};
+$("#logoutBtn").onclick=async()=>{
+  if(!authClient) return;
+  const {error}=await authClient.auth.signOut();
+  if(error){
+    authNotice(error.message||"Could not sign out.","error");
+  }else{
+    setAuthMode("login");
+    $("#authEmail").focus();
+  }
+};
+
+
 const examples={bank:"URGENT: Your bank KYC has expired. Your account will be BLOCKED today. Verify now at https://secure-kyc-update.example/login and enter your card details and OTP to avoid suspension.",job:"Congratulations! You have been selected for a remote internship. To confirm your seat, pay a refundable registration fee of ₹2,999 within 30 minutes. Send the payment screenshot and Aadhaar number to our HR WhatsApp. Limited seats!",delivery:"Your parcel could not be delivered because of an unpaid ₹49 customs fee. Pay immediately using the link below or your package will be returned: https://delivery-fee.example/pay"};
-function setTheme(t){document.documentElement.classList.toggle("light",t==="light");localStorage.setItem("scamshield-theme",t);$("#themeBtn").textContent=t==="light"?"☾":"☼"}setTheme(localStorage.getItem("scamshield-theme")||"dark");$("#themeBtn").onclick=()=>setTheme(document.documentElement.classList.contains("light")?"dark":"light");
+function setTheme(t){document.documentElement.classList.toggle("light",t==="light");localStorage.setItem("scamshield-theme",t);const glyph=t==="light"?"☾":"☼";if($("#themeBtn"))$("#themeBtn").textContent=glyph;if($("#authThemeBtn"))$("#authThemeBtn").textContent=glyph}setTheme(localStorage.getItem("scamshield-theme")||"dark");$("#themeBtn").onclick=()=>setTheme(document.documentElement.classList.contains("light")?"dark":"light");$("#authThemeBtn").onclick=()=>setTheme(document.documentElement.classList.contains("light")?"dark":"light");
 let mode="message";$$(".tab").forEach(b=>b.onclick=()=>{mode=b.dataset.mode;$$(".tab").forEach(x=>x.classList.toggle("active",x===b));["messagePane","linkPane","screenshotPane"].forEach(id=>$("#"+id).classList.add("hidden"));$("#"+mode+"Pane").classList.remove("hidden")});
 $("#messageInput").oninput=e=>$("#charCount").textContent=e.target.value.length.toLocaleString()+" / 12,000";
 $$(".examples button").forEach(b=>b.onclick=()=>{$("#messageInput").value=examples[b.dataset.example];$("#messageInput").dispatchEvent(new Event("input"));mode="message";$$(".tab").forEach(x=>x.classList.toggle("active",x.dataset.mode==="message"));["messagePane","linkPane","screenshotPane"].forEach(id=>$("#"+id).classList.add("hidden"));$("#messagePane").classList.remove("hidden");$("#messageInput").focus()});
@@ -93,3 +217,5 @@ async function analyze(){
   }
 }
 $("#analyzeBtn").onclick=analyze;$("#newScanBtn").onclick=()=>{$("#resultSection").classList.add("hidden");location.hash="scanner"};
+setAuthMode("signup");
+initAuth();
