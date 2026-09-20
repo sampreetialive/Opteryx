@@ -21,4 +21,4 @@ jobs:
         with:
           node-version: 22
       - name: Validate JavaScript
-        run: npm run check
+        run: node --input-type=module --check < app.js && node --check aws/strands-agent/src/agent.ts && node --check aws/strands-agent/src/tools.ts
