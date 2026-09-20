@@ -97,6 +97,7 @@ async function analyze(){
 }
 
 let callRecognition=null;
+let callMicStream=null;
 let callRunning=false;
 let callStartedAt=0;
 let callTimerId=null;
@@ -104,6 +105,7 @@ let callBuffer="";
 let lastCallAnalysis="";
 let callAnalysisBusy=false;
 let callRestarting=false;
+let callAnalysisTimer=null;
 
 function setCallError(message){
   const el=$("#callError");
@@ -143,12 +145,26 @@ function clearCallView(){
   setCallError("");
 }
 
-function addTranscript(text){
+function addTranscript(text,interim=false){
   const el=$("#callTranscript");
   if(!el||!text)return;
   const placeholder=el.querySelector(".transcript-placeholder");
   if(placeholder)placeholder.remove();
-  el.textContent=(el.textContent+" "+text).trim().slice(-12000);
+  if(interim){
+    const old=el.querySelector(".interim-line");
+    if(old)old.remove();
+    const span=document.createElement("span");
+    span.className="interim-line";
+    span.textContent=" "+text;
+    el.appendChild(span);
+  }else{
+    const old=el.querySelector(".interim-line");
+    if(old)old.remove();
+    const span=document.createElement("span");
+    span.textContent=" "+text;
+    el.appendChild(span);
+    el.textContent=el.textContent.slice(-12000);
+  }
   el.scrollTop=el.scrollHeight;
 }
 
@@ -157,29 +173,40 @@ function showCallAnalysis(a){
   const level=String(a.risk_level||"LOW").toUpperCase();
   const cls=level==="HIGH"?"high":level==="MEDIUM"?"medium":"low";
   const title=level==="HIGH"?"POTENTIAL SCAM":level==="MEDIUM"?"SUSPICIOUS":"NO MAJOR SIGNAL";
-  $("#callRisk").className="call-risk "+cls;
-  $("#callRisk").textContent=title;
-  $("#callConfidence").textContent=(Number(a.confidence)||0)+"%";
-  $("#callRiskText").textContent=String(a.headline||a.explanation||"Review the conversation carefully.");
+  if($("#callRisk")){$("#callRisk").className="call-risk "+cls;$("#callRisk").textContent=title;}
+  if($("#callConfidence"))$("#callConfidence").textContent=(Number(a.confidence)||0)+"%";
+  if($("#callRiskText"))$("#callRiskText").textContent=String(a.headline||a.explanation||"Review the conversation carefully.");
   const signals=Array.isArray(a.why)?a.why.slice(0,4):[];
-  $("#callSignals").innerHTML=(signals.length?signals:["No strong warning signal detected."]).map(x=>"<span>"+esc(x)+"</span>").join("");
+  if($("#callSignals"))$("#callSignals").innerHTML=(signals.length?signals:["No strong warning signal detected."]).map(x=>"<span>"+esc(x)+"</span>").join("");
 }
 
-async function analyzeCallTranscript(text){
+async function analyzeCallTranscript(text,force=false){
   const clean=String(text||"").trim();
-  if(clean.length<25||clean===lastCallAnalysis||callAnalysisBusy)return;
+  if(clean.length<18||(!force&&clean===lastCallAnalysis)||callAnalysisBusy)return;
   const backend=backendUrl("analyze");
-  if(!backend)return;
   callAnalysisBusy=true;
   lastCallAnalysis=clean;
   setCallStatus("ANALYZING","analyzing");
   try{
-    const r=await fetch(backend,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:"LIVE CALL TRANSCRIPT:\n"+clean.slice(-8000)})});
-    const d=await r.json().catch(()=>({}));
-    if(!r.ok)throw new Error(d.error||"Live call analysis failed.");
-    showCallAnalysis(d.analysis);
+    if(backend){
+      const r=await fetch(backend,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({message:"LIVE CALL TRANSCRIPT:\n"+clean.slice(-8000)})
+      });
+      const ct=r.headers.get("content-type")||"";
+      let d={};
+      if(ct.includes("application/json"))d=await r.json();
+      else throw new Error("The AI server returned an unexpected response.");
+      if(!r.ok)throw new Error(d.error||"Live call AI analysis failed.");
+      showCallAnalysis(d.analysis);
+    }else{
+      showCallAnalysis(localHeuristic(clean,""));
+    }
   }catch(e){
-    setCallError(e.message||"Live call analysis failed. The transcript will continue locally.");
+    // Keep the live scanner useful even if the AI backend is temporarily unavailable.
+    showCallAnalysis(localHeuristic(clean,""));
+    setCallError("AI backend unavailable right now. Showing local scam-signal analysis while transcription continues.");
   }finally{
     callAnalysisBusy=false;
     if(callRunning)setCallStatus("LIVE","live");
@@ -191,43 +218,57 @@ function stopCallScan(){
   callRestarting=false;
   if(callRecognition){try{callRecognition.stop();}catch(_){}}
   if(callTimerId)clearInterval(callTimerId);
-  callTimerId=null;
+  if(callAnalysisTimer)clearInterval(callAnalysisTimer);
+  callTimerId=null;callAnalysisTimer=null;
+  if(callMicStream){callMicStream.getTracks().forEach(t=>t.stop());callMicStream=null;}
   setCallButtons(false);
   setCallStatus("STOPPED","");
 }
 
-function startCallScan(){
+async function startCallScan(){
   setCallError("");
   const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SpeechRecognition){
-    setCallError("Live transcription is not supported by this browser. Please use the latest Chrome or Edge, or use the Message tab with a call transcript.");
+    setCallError("Live transcription is not supported by this browser. Use the latest Chrome or Edge.");
     return;
   }
   if(callRunning)return;
-  callRunning=true;callRestarting=false;callStartedAt=Date.now();callBuffer="";
+
+  try{
+    // Explicitly request microphone permission so the browser cannot silently fail.
+    callMicStream=await navigator.mediaDevices.getUserMedia({audio:true});
+  }catch(e){
+    setCallError("Microphone access is required. Allow microphone access for this site, then click Start live scan again.");
+    return;
+  }
+
+  callRunning=true;callRestarting=false;callStartedAt=Date.now();callBuffer="";lastCallAnalysis="";
   clearCallView();callStartedAt=Date.now();
   setCallButtons(true);setCallStatus("LIVE","live");
   callTimerId=setInterval(updateCallTimer,1000);
+
   callRecognition=new SpeechRecognition();
   callRecognition.continuous=true;
   callRecognition.interimResults=true;
-  callRecognition.lang=navigator.language||"en-IN";
+  callRecognition.lang="en-IN";
   callRecognition.maxAlternatives=1;
+
   callRecognition.onresult=e=>{
     let finalText="";
     let interim="";
     for(let i=e.resultIndex;i<e.results.length;i++){
-      const part=e.results[i][0].transcript;
+      const part=e.results[i][0].transcript.trim();
       if(e.results[i].isFinal)finalText+=" "+part;
       else interim+=" "+part;
     }
+    if(interim)addTranscript(interim.trim(),true);
     if(finalText){
       callBuffer=(callBuffer+" "+finalText).trim().slice(-10000);
-      addTranscript(finalText.trim());
-      analyzeCallTranscript(callBuffer);
+      addTranscript(finalText.trim(),false);
+      analyzeCallTranscript(callBuffer,true);
     }
-    if(interim&&$("#callStatus")&&callRunning)$("#callStatus").title="Hearing: "+interim.trim();
   };
+
   callRecognition.onerror=e=>{
     if(!callRunning)return;
     if(e.error==="not-allowed"||e.error==="service-not-allowed"){
@@ -235,19 +276,37 @@ function startCallScan(){
       setCallError("Microphone/speech permission was denied. Allow microphone access and try again.");
       return;
     }
+    if(e.error==="audio-capture"){
+      stopCallScan();
+      setCallError("The microphone is unavailable or already being used by another app.");
+      return;
+    }
+    if(e.error==="network"){
+      setCallError("Speech recognition network error. Retrying automatically…");
+      return;
+    }
     if(e.error==="no-speech")return;
-    setCallError("Speech recognition reported: "+e.error+". The scan can be restarted.");
+    setCallError("Speech recognition reported: "+e.error+". Retrying automatically…");
   };
+
   callRecognition.onend=()=>{
     if(callRunning&&!callRestarting){
       callRestarting=true;
       setTimeout(()=>{
         callRestarting=false;
         if(callRunning)try{callRecognition.start();}catch(_){}
-      },250);
+      },300);
     }
   };
-  try{callRecognition.start();}catch(e){stopCallScan();setCallError("Could not start live transcription. Please allow microphone access and try again.");}
+
+  // Analyze the accumulated transcript periodically, even when the browser
+  // has not emitted a final speech segment yet.
+  callAnalysisTimer=setInterval(()=>{
+    if(callRunning&&callBuffer.length>=18&&!callAnalysisBusy)analyzeCallTranscript(callBuffer,false);
+  },8000);
+
+  try{callRecognition.start();}
+  catch(e){stopCallScan();setCallError("Could not start live transcription. Allow microphone access and try again.");}
 }
 
 $("#startCallBtn")?.addEventListener("click",startCallScan);
