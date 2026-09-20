@@ -127,3 +127,6 @@ See [docs/FIRST-COMMIT-SUBMISSION.md](docs/FIRST-COMMIT-SUBMISSION.md) for the h
 - User accounts
 - Advanced persistent abuse/rate limiting
 - External URL reputation feeds
+
+
+The latest web build includes the authentication gate and hardened analyzer runtime; run `npm run check` before deployment.
