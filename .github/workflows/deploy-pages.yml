@@ -43,6 +43,7 @@ jobs:
           mkdir -p _site/assets
           cp index.html _site/index.html
           cp app.js _site/app.js
+          cp auth.js _site/auth.js
           cp styles.css _site/styles.css
           cp config.js _site/config.js
           cp -r assets/. _site/assets/
