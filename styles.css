@@ -43,3 +43,31 @@
 .app-shell{min-height:100vh}
 @media(max-width:900px){.auth-grid{grid-template-columns:1fr;gap:35px}.auth-card{justify-self:start;max-width:600px}.auth-brand{margin-bottom:45px}}
 @media(max-width:560px){.auth-shell{width:min(100% - 28px,1180px)}.auth-gate{padding-top:18px}.auth-grid{gap:20px}.auth-pitch{padding:5px 0}.auth-pitch h1{font-size:54px}.auth-pitch p{font-size:14px}.auth-card{padding:20px}.auth-brand{margin-bottom:30px}.user-badge{display:none}.logout-btn{padding:8px 9px}}
+
+/* Live call scanner */
+.call-panel{min-height:185px;background:var(--surface2);border:1px solid var(--line);border-radius:16px;padding:17px}
+.call-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+.call-kicker{font-size:9px;font-weight:900;letter-spacing:.14em;color:var(--red)}
+.call-kicker i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);margin-right:6px;box-shadow:0 0 10px #ff5f6d}
+.call-head h3{font-size:22px;margin:8px 0 5px}
+.call-head p{margin:0;color:var(--muted);font-size:10px;line-height:1.5;max-width:610px}
+.call-status{border:1px solid var(--line);border-radius:999px;padding:7px 9px;font-size:8px;font-weight:900;letter-spacing:.12em;color:var(--muted);white-space:nowrap}
+.call-status.live{color:var(--red);border-color:#ff5f6d55;background:#ff5f6d0d;animation:callPulse 1.5s infinite}
+.call-status.analyzing{color:var(--yellow);border-color:#ffd16655;background:#ffd1660d}
+@keyframes callPulse{50%{box-shadow:0 0 0 5px #ff5f6d0d}}
+.call-consent{display:flex;gap:9px;margin:14px 0;padding:10px 11px;border:1px solid #ffd16644;background:#ffd16608;border-radius:11px;font-size:9px;line-height:1.45}
+.call-consent b{color:var(--yellow);white-space:nowrap}
+.call-consent span{color:var(--muted)}
+.call-live-grid{display:grid;grid-template-columns:1.35fr .65fr;gap:9px}
+.transcript-card,.call-risk-card{border:1px solid var(--line);background:var(--surface);border-radius:13px;padding:12px}
+.transcript-top,.call-risk-top{display:flex;justify-content:space-between;color:var(--muted);font-size:8px;font-weight:900;letter-spacing:.12em}
+.call-transcript{height:165px;overflow:auto;margin-top:9px;padding:10px;background:var(--surface2);border-radius:10px;font-size:11px;line-height:1.6;white-space:pre-wrap}
+.transcript-placeholder{color:var(--muted)}
+.call-risk{font:800 23px "Space Grotesk";margin-top:25px}
+.call-risk.neutral{color:var(--muted)}.call-risk.low{color:var(--green)}.call-risk.medium{color:var(--yellow)}.call-risk.high{color:var(--red)}
+.call-risk-card p{color:var(--muted);font-size:9px;line-height:1.5}
+.call-signals{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px}.call-signals span{padding:6px 7px;border:1px solid var(--line);border-radius:8px;font-size:8px;color:var(--muted)}
+.call-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.call-actions .primary-btn{flex:1;justify-content:space-between}.call-actions .secondary-btn{min-width:95px}
+.call-footnote{display:block;color:var(--muted);font-size:8px;line-height:1.5;margin-top:9px}
+@media(max-width:700px){.call-live-grid{grid-template-columns:1fr}.call-head{flex-direction:column}.call-status{align-self:flex-start}.call-transcript{height:140px}}
+@media(max-width:560px){.tabs{overflow:auto}.tabs .tab{min-width:92px}.call-panel{padding:13px}.call-head h3{font-size:19px}}
