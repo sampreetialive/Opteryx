@@ -191,9 +191,15 @@ async function analyze(){
       render(localHeuristic(message,url),false);
       return;
     }
+    const sessionResult=authClient?await authClient.auth.getSession():{data:{session:null}};
+    const session=sessionResult.data?.session||null;
+    if(!session) throw Error("Your session has expired. Please sign in again.");
     const r=await fetch(backend,{
       method:"POST",
-      headers:{"Content-Type":"application/json"},
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer "+session.access_token
+      },
       body:JSON.stringify({message,url,image})
     });
     const contentType=r.headers.get("content-type")||"";
